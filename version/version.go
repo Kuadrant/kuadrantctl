@@ -13,19 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package cmd
+package version
 
-import (
-	"github.com/spf13/cobra"
+var (
+	Version = "0.0.1"
 )
-
-// apiCmd represents the api command
-var apiCmd = &cobra.Command{
-	Use:   "api",
-	Short: "Commands related to Kuadrant API's",
-	Long:  "The api command provides subcommands to manage kuadrant API manifests",
-}
-
-func init() {
-	rootCmd.AddCommand(apiCmd)
-}

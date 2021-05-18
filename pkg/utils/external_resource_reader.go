@@ -13,19 +13,26 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package cmd
+package utils
 
 import (
-	"github.com/spf13/cobra"
+	"io/ioutil"
+	"os"
 )
 
-// apiCmd represents the api command
-var apiCmd = &cobra.Command{
-	Use:   "api",
-	Short: "Commands related to Kuadrant API's",
-	Long:  "The api command provides subcommands to manage kuadrant API manifests",
-}
+// ReadExternalResource reads data streams from external resources. Currently implemented:
+// - '-' for STDIN
+// - URLs (HTTP[S])
+// - Files
+func ReadExternalResource(resource string) ([]byte, error) {
+	if resource == "-" {
+		return ioutil.ReadAll(os.Stdin)
+	}
 
-func init() {
-	rootCmd.AddCommand(apiCmd)
+	if url, isURL := ParseURL(resource); isURL {
+		return ReadURL(url)
+	}
+
+	// Defaulting to filepath
+	return ioutil.ReadFile(resource)
 }

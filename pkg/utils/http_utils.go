@@ -13,19 +13,29 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package cmd
+package utils
 
 import (
-	"github.com/spf13/cobra"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 )
 
-// apiCmd represents the api command
-var apiCmd = &cobra.Command{
-	Use:   "api",
-	Short: "Commands related to Kuadrant API's",
-	Long:  "The api command provides subcommands to manage kuadrant API manifests",
+// ParseURL returns true when valid HTTP[S] url is found
+func ParseURL(str string) (*url.URL, bool) {
+	u, err := url.Parse(str)
+	return u, err == nil && u.Scheme != "" && u.Host != ""
 }
 
-func init() {
-	rootCmd.AddCommand(apiCmd)
+func ReadURL(location *url.URL) ([]byte, error) {
+	resp, err := http.Get(location.String())
+	if err != nil {
+		return nil, err
+	}
+	data, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }
