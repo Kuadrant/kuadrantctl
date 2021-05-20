@@ -16,11 +16,11 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"os"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/kuadrant/kuadrantctl/pkg/kuadrantapi"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
@@ -64,7 +64,10 @@ Outputs to the console by default.`,
 			return err
 		}
 
-		serializedAPI, err := yaml.Marshal(api)
+		// Using json serializer because
+		// currently (github.com/kuadrant/kuadrant-controller#0.0.1-pre) API data type
+		// does not have yaml tags, only json tags
+		serializedAPI, err := json.MarshalIndent(api, "", "  ")
 		if err != nil {
 			return err
 		}

@@ -16,6 +16,8 @@ limitations under the License.
 package kuadrantapi
 
 import (
+	"fmt"
+
 	"github.com/getkin/kin-openapi/openapi3"
 	kctlrv1beta1 "github.com/kuadrant/kuadrant-controller/apis/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,29 +46,92 @@ func (loader *Loader) LoadFromDoc(doc *openapi3.T) (*kctlrv1beta1.API, error) {
 		},
 	}
 
-	_, err := utils.BasePathFromOpenAPI(doc)
+	err := loader.loadServers(doc, api)
+	if err != nil {
+		return nil, err
+	}
+	err = loader.loadOperations(doc, api)
+	if err != nil {
+		return nil, err
+	}
+	err = loader.loadSecuritySchemes(doc, api)
+	if err != nil {
+		return nil, err
+	}
+	err = loader.loadGlobalSecurityRequirements(doc, api)
 	if err != nil {
 		return nil, err
 	}
 
+	return api, nil
+}
+
+func (loader *Loader) loadServers(doc *openapi3.T, api *kctlrv1beta1.API) error {
 	for _, server := range doc.Servers {
 		serverURL, err := utils.RenderOpenAPIServerURL(server)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		api.Spec.Hosts = append(api.Spec.Hosts, serverURL.Host)
+	}
+
+	return nil
+}
+
+func (loader *Loader) loadOperations(doc *openapi3.T, api *kctlrv1beta1.API) error {
+	basePath, err := utils.BasePathFromOpenAPI(doc)
+	if err != nil {
+		return err
 	}
 
 	for path, pathItem := range doc.Paths {
 		for opVerb, operation := range pathItem.Operations() {
 			apiOperation := &kctlrv1beta1.Operation{
 				Name:   utils.MethodSystemNameFromOpenAPIOperation(path, opVerb, operation),
-				Path:   path,
+				Path:   fmt.Sprintf("%s%s", basePath, path),
 				Method: opVerb,
 			}
+			if operation.Security != nil {
+				// TODO(eastizle) Current version of API (from github.com/kuadrant/kuadrant-controller#0.0.1-pre)
+				// data type cannot accomodate sec requirements for operations
+			}
+
 			api.Spec.Operations = append(api.Spec.Operations, apiOperation)
 		}
 	}
 
-	return api, nil
+	return nil
+}
+
+func (loader *Loader) loadSecuritySchemes(doc *openapi3.T, api *kctlrv1beta1.API) error {
+	for secSchemeName, secScheme := range doc.Components.SecuritySchemes {
+		kapiSecSchemeObj := &kctlrv1beta1.SecurityScheme{
+			Name: secSchemeName,
+		}
+
+		switch secScheme.Value.Type {
+		case "apiKey":
+			kapiSecSchemeObj.APIKeyAuth = &kctlrv1beta1.APIKeyAuth{
+				Location: secScheme.Value.In,
+				Name:     secScheme.Value.Name,
+			}
+		case "openIdConnect":
+			kapiSecSchemeObj.OpenIDConnectAuth = &kctlrv1beta1.OpenIDConnectAuth{
+				URL: secScheme.Value.OpenIdConnectUrl,
+			}
+		default:
+			return fmt.Errorf("Unexpected security scheme type found: %s. Supported values are: %s",
+				secScheme.Value.Type, []string{"apiKey", "openIdConnect"})
+		}
+		api.Spec.SecurityScheme = append(api.Spec.SecurityScheme, kapiSecSchemeObj)
+	}
+
+	return nil
+}
+
+func (loader *Loader) loadGlobalSecurityRequirements(doc *openapi3.T, api *kctlrv1beta1.API) error {
+	// TODO(eastizle) Current version of API (from github.com/kuadrant/kuadrant-controller#0.0.1-pre)
+	// data type cannot accomodate global sec requirements
+
+	return nil
 }
