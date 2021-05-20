@@ -14,10 +14,13 @@ OpenAPI definition resource can be provided by one of the following channels:
 * URL format (supported schemes are HTTP and HTTPS). The CLI will try to download from the given address.
 * Read from stdin standard input stream.
 
-More options:
+### Limitations
+* Supported security schemes: **apiKey**, **openIdConnect**.
+
+### Usage :
 
 ```shell
-kuadrantctl api generate -h
+$ kuadrantctl api generate -h
 The generate subcommand generates a Kuadrant API manifest from a OAS 3.0 document.
 For example:
 
