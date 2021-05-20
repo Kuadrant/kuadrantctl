@@ -5,16 +5,27 @@ PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 
 GO ?= go
 
-all: test
+all: help
 
-# Run unit tests
+.PHONY : help
+help: Makefile
+	@sed -n 's/^##//p' $<
+
+
+## test: Run unit tests
+.PHONY : test
 test: fmt vet
 	$(GO) test  -v ./...
 
-# Run go fmt against code
+## install: Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
+.PHONY : install
+install: fmt vet
+	$(GO) install
+
+.PHONY : fmt
 fmt:
 	$(GO) fmt ./...
 
-# Run go vet against code
+.PHONY : vet
 vet:
 	$(GO) vet ./...
