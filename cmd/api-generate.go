@@ -16,7 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/spf13/cobra"
@@ -25,6 +25,8 @@ import (
 	"github.com/kuadrant/kuadrantctl/pkg/kuadrantapi"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
+
+var apiGenerateOutputFlag string
 
 // apiGenerateCmd represents the generate command
 var apiGenerateCmd = &cobra.Command{
@@ -67,12 +69,26 @@ Outputs to the console by default.`,
 			return err
 		}
 
-		fmt.Println(string(serializedAPI))
+		writer := cmd.OutOrStdout()
+		if apiGenerateOutputFlag != "" {
+			file, err := os.Create(apiGenerateOutputFlag)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			writer = file
+		}
+
+		_, err = writer.Write(serializedAPI)
+		if err != nil {
+			return err
+		}
 
 		return nil
 	},
 }
 
 func init() {
+	apiGenerateCmd.PersistentFlags().StringVarP(&apiGenerateOutputFlag, "output", "o", "", "Write output to <file> instead of stdout")
 	apiCmd.AddCommand(apiGenerateCmd)
 }
