@@ -34,7 +34,33 @@ func NewLoader() *Loader {
 	return &Loader{}
 }
 
-// LoadFromDoc loads a spec from an OpenAPI doc
+// LoadFromResource loads a API spec from an external OpenAPI resource
+// Currently implemented data streams:
+// - '-' for STDIN
+// - URLs (HTTP[S])
+// - Files
+func (loader *Loader) LoadFromResource(resource string) (*kctlrv1beta1.API, error) {
+	data, err := utils.ReadExternalResource(resource)
+	if err != nil {
+		return nil, err
+	}
+
+	openapiLoader := openapi3.NewLoader()
+	doc, err := openapiLoader.LoadFromData(data)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO(eastizle): optional flag for validation
+	err = doc.Validate(openapiLoader.Context)
+	if err != nil {
+		return nil, err
+	}
+
+	return loader.LoadFromDoc(doc)
+}
+
+// LoadFromDoc loads a API spec from an OpenAPI doc
 func (loader *Loader) LoadFromDoc(doc *openapi3.T) (*kctlrv1beta1.API, error) {
 	api := &kctlrv1beta1.API{
 		TypeMeta: metav1.TypeMeta{
