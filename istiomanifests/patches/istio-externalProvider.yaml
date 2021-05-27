@@ -1,0 +1,16 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+spec:
+  meshConfig:
+    extensionProviders:
+      - name: "kuadrant-authorization"
+        envoyExtAuthzGrpc:
+          service: "authorino-authorization.kuadrant-system.svc.cluster.local"
+          port: 50051
+  components:
+    ingressGateways:
+      - name: kuadrant-gateway
+        enabled: true
+        namespace: kuadrant-system
+        label:
+          istio: kuadrant-system
