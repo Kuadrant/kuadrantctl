@@ -42,7 +42,7 @@ var createCmd = &cobra.Command{
 	Long: `The create command generates a Kuadrant API manifest and applies it to a cluster.
 For example:
 
-kuadrantctl api create oas3-resource (/path/to/your/spec/file.[json|yaml|yml] OR
+kuadrantctl api create oas3-resource -n ns (/path/to/your/spec/file.[json|yaml|yml] OR
     http[s]://domain/resource/path.[json|yaml|yml] OR '-')
 	`,
 	Args: cobra.MinimumNArgs(1),
