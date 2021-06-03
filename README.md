@@ -15,6 +15,7 @@ go get -u github.com/kuadrant/kuadrantctl
 * Kuadrant API manifest subcommands `kuadrantctl api <subcommand>`
     * [Generate Kuadrant API manifest](doc/api-generate.md)
     * [Create Kuadrant API manifest](doc/api-create.md)
+    * [Install Kuadrant](doc/install.md)
 
 
 ## Contributing

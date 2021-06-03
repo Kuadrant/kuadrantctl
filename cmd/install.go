@@ -57,8 +57,8 @@ var (
 // installCmd represents the install command
 var installCmd = &cobra.Command{
 	Use:   "install",
-	Short: "Applies an kuadrant manifest, installing or reconfiguring kuadrant on a cluster",
-	Long:  "The install command generates an Istio install manifest and applies it to a cluster.",
+	Short: "Applies a kuadrant manifest bundle, installing or reconfiguring kuadrant on a cluster",
+	Long:  "The install command applies kuadrant manifest bundle and applies it to a cluster.",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// Required to have controller-runtim config package read the kubeconfig arg
 		err := flag.CommandLine.Parse([]string{"-kubeconfig", installKubeConfig})
