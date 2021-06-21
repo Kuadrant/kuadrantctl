@@ -19,11 +19,9 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/spf13/cobra"
 
 	"github.com/kuadrant/kuadrantctl/pkg/kuadrantapi"
-	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
 
 var apiGenerateOutputFlag string
@@ -41,25 +39,8 @@ kuadrantctl api generate oas3-resource (/path/to/your/spec/file.[json|yaml|yml] 
 Outputs to the console by default.`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		data, err := utils.ReadExternalResource(args[0])
-		if err != nil {
-			return err
-		}
-
-		loader := openapi3.NewLoader()
-		doc, err := loader.LoadFromData(data)
-		if err != nil {
-			return err
-		}
-
-		// TODO(eastizle): optional flag for validation
-		err = doc.Validate(loader.Context)
-		if err != nil {
-			return err
-		}
-
 		apiLoader := kuadrantapi.NewLoader()
-		api, err := apiLoader.LoadFromDoc(doc)
+		api, err := apiLoader.LoadFromResource(args[0])
 		if err != nil {
 			return err
 		}
