@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/getkin/kin-openapi v0.61.0
-	github.com/kuadrant/kuadrant-controller v0.0.1-pre
+	github.com/kuadrant/kuadrant-controller v0.0.1-pre2
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
@@ -17,6 +17,9 @@ require (
 	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
 	golang.org/x/text v0.3.6 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
+	istio.io/client-go v1.10.1
+	k8s.io/api v0.20.2
+	k8s.io/apiextensions-apiserver v0.20.1
 	k8s.io/apimachinery v0.20.2
 	k8s.io/client-go v0.20.2
 	sigs.k8s.io/controller-runtime v0.8.0

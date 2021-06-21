@@ -1,0 +1,646 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: kuadrant-system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: apiproducts.networking.kuadrant.io
+spec:
+  group: networking.kuadrant.io
+  names:
+    kind: APIProduct
+    listKind: APIProductList
+    plural: apiproducts
+    singular: apiproduct
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: APIProduct is the Schema for the apiproducts API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: APIProductSpec defines the desired state of APIProduct
+            properties:
+              APIs:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    prefixOverride:
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
+              environments:
+                items:
+                  properties:
+                    backendServers:
+                      items:
+                        properties:
+                          API:
+                            type: string
+                          destination:
+                            properties:
+                              serviceSelector:
+                                description: ServiceReference holds a reference to Service.legacy.k8s.io
+                                properties:
+                                  name:
+                                    description: name is the name of the service. Required
+                                    type: string
+                                  namespace:
+                                    description: namespace is the namespace of the service. Required
+                                    type: string
+                                  path:
+                                    description: path is an optional URL path at which the webhook will be contacted.
+                                    type: string
+                                  port:
+                                    description: port is an optional service port at which the webhook will be contacted. `port` should be a valid port number (1-65535, inclusive). Defaults to 443 for backward compatibility.
+                                    format: int32
+                                    type: integer
+                                required:
+                                - name
+                                - namespace
+                                type: object
+                            required:
+                            - serviceSelector
+                            type: object
+                        required:
+                        - API
+                        - destination
+                        type: object
+                      type: array
+                    credentialSources:
+                      items:
+                        properties:
+                          apiKeyAuth:
+                            properties:
+                              labelSelectors:
+                                additionalProperties:
+                                  type: string
+                                type: object
+                            required:
+                            - labelSelectors
+                            type: object
+                          name:
+                            type: string
+                          openIDConnectAuth:
+                            properties:
+                              endpoint:
+                                type: string
+                            required:
+                            - endpoint
+                            type: object
+                        required:
+                        - name
+                        type: object
+                      type: array
+                    hosts:
+                      items:
+                        type: string
+                      type: array
+                    name:
+                      type: string
+                    tlsConfig:
+                      properties:
+                        plainHTTP:
+                          type: string
+                        tlsSecretName:
+                          type: string
+                      required:
+                      - plainHTTP
+                      - tlsSecretName
+                      type: object
+                  required:
+                  - backendServers
+                  - credentialSources
+                  - hosts
+                  - name
+                  type: object
+                type: array
+              information:
+                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster Important: Run "make" to regenerate code after modifying this file'
+                properties:
+                  description:
+                    type: string
+                  owner:
+                    type: string
+                required:
+                - description
+                - owner
+                type: object
+              securityScheme:
+                items:
+                  properties:
+                    apiKeyAuth:
+                      properties:
+                        location:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - location
+                      - name
+                      type: object
+                    name:
+                      type: string
+                    openIDConnectAuth:
+                      properties:
+                        url:
+                          type: string
+                      required:
+                      - url
+                      type: object
+                  required:
+                  - name
+                  type: object
+                type: array
+            required:
+            - APIs
+            - environments
+            - information
+            - securityScheme
+            type: object
+          status:
+            description: APIProductStatus defines the observed state of APIProduct
+            properties:
+              observedgen:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state of cluster Important: Run "make" to regenerate code after modifying this file TODO(jmprusi): use proper conditions to give feedback to the user'
+                format: int64
+                type: integer
+              ready:
+                type: boolean
+            required:
+            - observedgen
+            - ready
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: apis.networking.kuadrant.io
+spec:
+  group: networking.kuadrant.io
+  names:
+    kind: API
+    listKind: APIList
+    plural: apis
+    singular: api
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: API is the Schema for the apis API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: APISpec defines the desired state of API
+            properties:
+              globalSecurityRequirements:
+                items:
+                  properties:
+                    apiKeyAuth:
+                      additionalProperties:
+                        properties:
+                          name:
+                            type: string
+                          required:
+                            type: boolean
+                        type: object
+                      type: object
+                    openIDConnectAuth:
+                      additionalProperties:
+                        properties:
+                          name:
+                            type: string
+                          required:
+                            type: boolean
+                          scopes:
+                            items:
+                              type: string
+                            type: array
+                        type: object
+                      type: object
+                  type: object
+                type: array
+              hosts:
+                items:
+                  type: string
+                type: array
+              operations:
+                items:
+                  properties:
+                    method:
+                      type: string
+                    name:
+                      type: string
+                    path:
+                      type: string
+                    security:
+                      items:
+                        properties:
+                          apiKeyAuth:
+                            additionalProperties:
+                              properties:
+                                name:
+                                  type: string
+                                required:
+                                  type: boolean
+                              type: object
+                            type: object
+                          openIDConnectAuth:
+                            additionalProperties:
+                              properties:
+                                name:
+                                  type: string
+                                required:
+                                  type: boolean
+                                scopes:
+                                  items:
+                                    type: string
+                                  type: array
+                              type: object
+                            type: object
+                        type: object
+                      type: array
+                  required:
+                  - method
+                  - name
+                  - path
+                  type: object
+                type: array
+              securityScheme:
+                items:
+                  properties:
+                    apiKeyAuth:
+                      properties:
+                        location:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - location
+                      - name
+                      type: object
+                    name:
+                      type: string
+                    openIDConnectAuth:
+                      properties:
+                        url:
+                          type: string
+                      required:
+                      - url
+                      type: object
+                  required:
+                  - name
+                  type: object
+                type: array
+            required:
+            - hosts
+            - operations
+            type: object
+          status:
+            description: APIStatus defines the observed state of API
+            properties:
+              observedGeneration:
+                format: int64
+                type: integer
+              ready:
+                type: boolean
+            required:
+            - observedGeneration
+            - ready
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kuadrant-controller-manager
+  namespace: kuadrant-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kuadrant-leader-election-role
+  namespace: kuadrant-system
+rules:
+- apiGroups:
+  - ""
+  - coordination.k8s.io
+  resources:
+  - configmaps
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: kuadrant-manager-role
+rules:
+- apiGroups:
+  - config.authorino.3scale.net
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - virtualservices
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.kuadrant.io
+  resources:
+  - apiproducts
+  - apis
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.kuadrant.io
+  resources:
+  - apiproducts/finalizers
+  - apis/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - networking.kuadrant.io
+  resources:
+  - apiproducts/status
+  - apis/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - security.istio.io
+  resources:
+  - authorizationpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kuadrant-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kuadrant-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kuadrant-leader-election-rolebinding
+  namespace: kuadrant-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kuadrant-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: kuadrant-controller-manager
+  namespace: kuadrant-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kuadrant-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kuadrant-manager-role
+subjects:
+- kind: ServiceAccount
+  name: kuadrant-controller-manager
+  namespace: kuadrant-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kuadrant-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kuadrant-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: kuadrant-controller-manager
+  namespace: kuadrant-system
+---
+apiVersion: v1
+data:
+  controller_manager_config.yaml: |
+    apiVersion: controller-runtime.sigs.k8s.io/v1alpha1
+    kind: ControllerManagerConfig
+    health:
+      healthProbeBindAddress: :8081
+    metrics:
+      bindAddress: 127.0.0.1:8080
+    webhook:
+      port: 9443
+    leaderElection:
+      leaderElect: true
+      resourceName: e358d637.kuadrant.io
+kind: ConfigMap
+metadata:
+  name: kuadrant-manager-config
+  namespace: kuadrant-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: kuadrant-controller-manager-metrics-service
+  namespace: kuadrant-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    targetPort: https
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: kuadrant-controller-manager
+  namespace: kuadrant-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --config=controller_manager_config.yaml
+        command:
+        - /manager
+        image: controller:latest
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - mountPath: /controller_manager_config.yaml
+          name: manager-config
+          subPath: controller_manager_config.yaml
+      - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=10
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
+      securityContext:
+        runAsNonRoot: true
+      serviceAccountName: kuadrant-controller-manager
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - configMap:
+          name: kuadrant-manager-config
+        name: manager-config
