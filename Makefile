@@ -3,6 +3,7 @@ SHELL := /bin/bash
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 GO ?= go
+KUBECTL ?= kubectl
 
 include utils.mk
 
@@ -85,3 +86,10 @@ cluster-cleanup: $(KIND)
 .PHONY : cluster-setup
 cluster-setup: $(KIND)
 	$(KIND) create cluster --name $(KIND_CLUSTER_NAME) --config utils/kind/cluster.yaml
+
+.PHONY : cert-manager
+cert-manager: $(KIND)
+	$(KUBECTL) apply -f https://github.com/jetstack/cert-manager/releases/download/v1.4.0/cert-manager.yaml
+	$(KUBECTL) delete mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook
+	$(KUBECTL) delete validatingwebhookconfigurations.admissionregistration.k8s.io/cert-manager-webhook
+	$(KUBECTL) -n cert-manager wait --timeout=300s --for=condition=Available deployments --all
