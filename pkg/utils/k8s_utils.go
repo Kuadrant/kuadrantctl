@@ -35,7 +35,7 @@ func CreateOrUpdateK8SObject(k8sClient client.Client, obj runtime.Object) error 
 	}
 
 	err := k8sClient.Create(context.Background(), k8sObj)
-	logf.Log.Info("create resource", "GKV", k8sObj.GetObjectKind().GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
+	logf.Log.Info("create resource", "GKV", k8sObj.GetObjectKind().GroupVersionKind().String(), "name", k8sObj.GetName(), "error", err)
 	if err == nil {
 		return nil
 	}
@@ -70,7 +70,7 @@ func CreateOrUpdateK8SObject(k8sClient client.Client, obj runtime.Object) error 
 	}
 
 	err = k8sClient.Update(context.Background(), k8sObjCopy)
-	logf.Log.Info("update resource", "GKV", k8sObj.GetObjectKind().GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
+	logf.Log.Info("update resource", "GKV", k8sObj.GetObjectKind().GroupVersionKind().String(), "name", k8sObj.GetName(), "error", err)
 	return err
 }
 
@@ -81,11 +81,11 @@ func CreateOnlyK8SObject(k8sClient client.Client, obj runtime.Object) error {
 	}
 
 	err := k8sClient.Create(context.Background(), k8sObj)
-	logf.Log.Info("create resource", "GKV", k8sObj.GetObjectKind().GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
+	logf.Log.Info("create resource", "GKV", k8sObj.GetObjectKind().GroupVersionKind().String(), "name", k8sObj.GetName(), "error", err)
 	if err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			// Omit error
-			logf.Log.Info("Already exists", "GKV", k8sObj.GetObjectKind().GroupVersionKind(), "name", k8sObj.GetName())
+			logf.Log.Info("Already exists", "GKV", k8sObj.GetObjectKind().GroupVersionKind().String(), "name", k8sObj.GetName())
 		} else {
 			return err
 		}
