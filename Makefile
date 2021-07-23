@@ -16,7 +16,7 @@ help: Makefile
 KIND = $(PROJECT_PATH)/bin/kind
 KIND_CLUSTER_NAME = kuadrant-local
 $(KIND):
-	$(call go-get-tool,$(KIND),sigs.k8s.io/kind@v0.10.0)
+	$(call go-get-tool,$(KIND),sigs.k8s.io/kind@v0.11.1)
 
 .PHONY : kind
 kind: $(KIND)
