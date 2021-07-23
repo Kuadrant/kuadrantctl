@@ -79,13 +79,14 @@ func CreateOnlyK8SObject(k8sClient client.Client, obj runtime.Object) error {
 	if !ok {
 		return errors.New("runtime.Object could not be casted to client.Object")
 	}
+	k8sObjKind := k8sObj.DeepCopyObject().GetObjectKind()
 
 	err := k8sClient.Create(context.Background(), k8sObj)
-	logf.Log.Info("create resource", "GKV", k8sObj.GetObjectKind().GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
+	logf.Log.Info("create resource", "GKV", k8sObjKind.GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
 	if err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			// Omit error
-			logf.Log.Info("Already exists", "GKV", k8sObj.GetObjectKind().GroupVersionKind(), "name", k8sObj.GetName())
+			logf.Log.Info("Already exists", "GKV", k8sObjKind.GroupVersionKind(), "name", k8sObj.GetName())
 		} else {
 			return err
 		}
