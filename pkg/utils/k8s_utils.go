@@ -94,6 +94,22 @@ func CreateOnlyK8SObject(k8sClient client.Client, obj runtime.Object) error {
 	return nil
 }
 
+func DeleteK8SObject(k8sClient client.Client, obj runtime.Object) error {
+	k8sObj, ok := obj.(client.Object)
+	if !ok {
+		return errors.New("runtime.Object could not be casted to client.Object")
+	}
+	k8sObjKind := k8sObj.DeepCopyObject().GetObjectKind()
+
+	err := k8sClient.Delete(context.Background(), k8sObj)
+	logf.Log.Info("delete resource", "GKV", k8sObjKind.GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
+	if err != nil && !apierrors.IsNotFound(err) {
+		// Omit NotFound error
+		return err
+	}
+	return nil
+}
+
 // IsDeploymentAvailable returns true when the provided Deployment
 // has the "Available" condition set to true
 func IsDeploymentAvailable(dc *appsv1.Deployment) bool {
