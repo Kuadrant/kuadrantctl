@@ -24,6 +24,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -35,7 +36,7 @@ func CreateOrUpdateK8SObject(k8sClient client.Client, obj runtime.Object) error 
 	}
 
 	err := k8sClient.Create(context.Background(), k8sObj)
-	logf.Log.Info("create resource", "GKV", k8sObj.GetObjectKind().GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
+	logf.Log.V(1).Info("create resource", "GKV", k8sObj.GetObjectKind().GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
 	if err == nil {
 		return nil
 	}
@@ -82,7 +83,7 @@ func CreateOnlyK8SObject(k8sClient client.Client, obj runtime.Object) error {
 	k8sObjKind := k8sObj.DeepCopyObject().GetObjectKind()
 
 	err := k8sClient.Create(context.Background(), k8sObj)
-	logf.Log.Info("create resource", "GKV", k8sObjKind.GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
+	logf.Log.V(1).Info("create resource", "GKV", k8sObjKind.GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
 	if err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			// Omit error
@@ -102,7 +103,7 @@ func DeleteK8SObject(k8sClient client.Client, obj runtime.Object) error {
 	k8sObjKind := k8sObj.DeepCopyObject().GetObjectKind()
 
 	err := k8sClient.Delete(context.Background(), k8sObj)
-	logf.Log.Info("delete resource", "GKV", k8sObjKind.GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
+	logf.Log.V(1).Info("delete resource", "GKV", k8sObjKind.GroupVersionKind(), "name", k8sObj.GetName(), "error", err)
 	if err != nil && !apierrors.IsNotFound(err) {
 		// Omit NotFound error
 		return err
@@ -122,29 +123,25 @@ func IsDeploymentAvailable(dc *appsv1.Deployment) bool {
 	return false
 }
 
-func CheckForDeploymentsReady(ns string, k8sClient client.Client, minRequired int) (bool, error) {
-	deploymentList := &appsv1.DeploymentList{}
-	listOptions := &client.ListOptions{}
-	client.InNamespace(ns).ApplyToList(listOptions)
-	err := k8sClient.List(context.Background(), deploymentList, listOptions)
+func CheckDeploymentAvailable(k8sClient client.Client, key types.NamespacedName) (bool, error) {
+	existingDeployment := &appsv1.Deployment{}
+	err := k8sClient.Get(context.Background(), key, existingDeployment)
 	if err != nil {
-		logf.Log.Error(err, "reading deployment list")
-		return false, err
-	}
-
-	if len(deploymentList.Items) < minRequired {
-		logf.Log.Info("reading deployment list", "items", len(deploymentList.Items), "required", minRequired)
-		return false, nil
-	}
-
-	for idx, deployment := range deploymentList.Items {
-		if !IsDeploymentAvailable(&deploymentList.Items[idx]) {
-			logf.Log.Info("Waiting for full availability", "Deployment", deployment.GetName(), "available", deployment.Status.AvailableReplicas, "desired", *deployment.Spec.Replicas)
+		if apierrors.IsNotFound(err) {
+			logf.Log.Info("Deployment not available", "name", key.Name)
 			return false, nil
 		}
 
-		logf.Log.Info("Deployment", deployment.GetName(), "available")
+		return false, err
 	}
 
+	if !IsDeploymentAvailable(existingDeployment) {
+		logf.Log.Info("Waiting for full availability", "Deployment", existingDeployment.GetName(),
+			"available replicas", existingDeployment.Status.AvailableReplicas, "desired replics",
+			*existingDeployment.Spec.Replicas)
+		return false, nil
+	}
+
+	logf.Log.Info("Deployment available", "name", existingDeployment.GetName())
 	return true, nil
 }
