@@ -18,7 +18,7 @@ jobs:
       - name: make install
         run: |
           make install
-  
+
   unittests:
     name: Run unit tests
     runs-on: ubuntu-latest
@@ -90,6 +90,10 @@ jobs:
         id: go
       - name: Check out code
         uses: actions/checkout@v2
+      - name: remove existing kustomize
+        run: |
+          # not necessary when https://github.com/Kuadrant/authorino/pull/150 is removed
+          rm -rf /usr/local/bin/kustomize /home/runner/go/bin/controller-gen
       - name: run test
         run: |
           make authorino-manifest-update-test
