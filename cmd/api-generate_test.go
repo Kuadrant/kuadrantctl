@@ -97,7 +97,9 @@ func TestAPIGenerateBasicOperations(t *testing.T) {
 
 	for _, expectedOp := range operations {
 		op := findOperation(api.Spec.Operations, expectedOp.name)
-		assert(t, op != nil, "operation {%s} not found", expectedOp.name)
+		if op == nil {
+			t.Fatalf("operation {%s} not found", expectedOp.name)
+		}
 		equals(t, expectedOp.path, op.Path)
 		equals(t, expectedOp.method, op.Method)
 	}
