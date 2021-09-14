@@ -117,10 +117,6 @@ func (loader *Loader) loadOperations(doc *openapi3.T, api *kctlrv1beta1.API) err
 				Path:   fmt.Sprintf("%s%s", basePath, path),
 				Method: opVerb,
 			}
-			if operation.Security != nil {
-				// TODO(eastizle) Current version of API (from github.com/kuadrant/kuadrant-controller#0.0.1-pre)
-				// data type cannot accomodate sec requirements for operations
-			}
 
 			api.Spec.Operations = append(api.Spec.Operations, apiOperation)
 		}
