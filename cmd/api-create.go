@@ -25,7 +25,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/kuadrant/kuadrantctl/pkg/kuadrantapi"
 )
@@ -94,12 +93,13 @@ func apiCreateCmd(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	logf.SetLogger(zap.New(zap.UseDevMode(true)))
-
 	// TODO(eastizle): add context flag to switch between kubeconfig contexts
 	// It would require using config.GetConfigWithContext(context string) (*rest.Config, error)
 	createCmd.PersistentFlags().StringVarP(&kubeConfig, "kubeconfig", "", "", "Kubernetes configuration file")
 	createCmd.Flags().StringVarP(&apiCreateNamespace, "namespace", "n", "", "Cluster namespace (required)")
-	createCmd.MarkFlagRequired("namespace")
+	err := createCmd.MarkFlagRequired("namespace")
+	if err != nil {
+		panic(err)
+	}
 	apiCmd.AddCommand(createCmd)
 }

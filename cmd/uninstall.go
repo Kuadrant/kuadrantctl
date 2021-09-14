@@ -13,11 +13,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/kuadrant/kuadrantctl/authorinomanifests"
 	"github.com/kuadrant/kuadrantctl/istiomanifests"
 	"github.com/kuadrant/kuadrantctl/kuadrantmanifests"
+	"github.com/kuadrant/kuadrantctl/limitadormanifests"
+	"github.com/kuadrant/kuadrantctl/pkg/limitador"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
 
@@ -40,7 +41,7 @@ var unInstallCmd = &cobra.Command{
 }
 
 func unInstallRun(cmd *cobra.Command, args []string) error {
-	err := setupScheme()
+	err := utils.SetupScheme()
 	if err != nil {
 		return err
 	}
@@ -66,6 +67,11 @@ func unInstallRun(cmd *cobra.Command, args []string) error {
 	}
 
 	err = unDeployIngressProvider(k8sClient)
+	if err != nil {
+		return err
+	}
+
+	err = unDeployRateLimitProvider(k8sClient)
 	if err != nil {
 		return err
 	}
@@ -125,21 +131,37 @@ func unDeployIngressProvider(k8sClient client.Client) error {
 	return nil
 }
 
+func unDeployRateLimitProvider(k8sClient client.Client) error {
+	err := utils.DeleteK8SObject(k8sClient, limitador.Limitador(installNamespace))
+	if err != nil {
+		return err
+	}
+
+	data, err := limitadormanifests.OperatorContent()
+	if err != nil {
+		return err
+	}
+	err = utils.DecodeFile(data, scheme.Scheme, delete(k8sClient))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func delete(k8sClient client.Client) utils.DecodeCallback {
 	return func(obj runtime.Object) error {
 		if (obj.GetObjectKind().GroupVersionKind().GroupVersion() == corev1.SchemeGroupVersion && obj.GetObjectKind().GroupVersionKind().Kind == reflect.TypeOf(corev1.Namespace{}).Name()) ||
 			obj.GetObjectKind().GroupVersionKind().Group == apiextensionsv1beta1.GroupName || obj.GetObjectKind().GroupVersionKind().Group == apiextensionsv1.GroupName {
 			// Omit Namespace and CRD's deletion inside the manifest data
 			return nil
-		} else {
-			return utils.DeleteK8SObject(k8sClient, obj)
 		}
+
+		return utils.DeleteK8SObject(k8sClient, obj)
 	}
 }
 
 func init() {
-	logf.SetLogger(zap.New(zap.UseDevMode(true)))
-
 	// TODO(eastizle): add context flag to switch between kubeconfig contexts
 	// It would require using config.GetConfigWithContext(context string) (*rest.Config, error)
 	unInstallCmd.PersistentFlags().StringVarP(&installKubeConfig, "kubeconfig", "", "", "Kubernetes configuration file")
