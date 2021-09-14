@@ -1,0 +1,95 @@
+---
+name: Testing
+
+on: pull_request
+
+jobs:
+  build:
+    name: Build executable
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.16.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+        id: go
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: make install
+        run: |
+          make install
+  
+  unittests:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.16.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+        id: go
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: run tests
+        run: |
+          make test
+
+  verify-istio-manifest:
+    name: Verify istio manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.16.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+        id: go
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: run test
+        run: |
+          make istio-manifest-update-test
+
+  verify-kuadrant-manifest:
+    name: Verify kuadrant manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.16.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+        id: go
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: run test
+        run: |
+          make kuadrant-manifest-update-test
+
+  verify-limitador-manifest:
+    name: Verify limitador manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.16.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+        id: go
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: run test
+        run: |
+          make limitador-operator-manifest-update-test
+
+  verify-authorino-manifest:
+    name: Verify authorino manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.16.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+        id: go
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: run test
+        run: |
+          make authorino-manifest-update-test

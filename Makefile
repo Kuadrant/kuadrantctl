@@ -131,3 +131,15 @@ cluster-cleanup: $(KIND)
 .PHONY : cluster-setup
 cluster-setup: $(KIND)
 	$(KIND) create cluster --name $(KIND_CLUSTER_NAME) --config utils/kind/cluster.yaml
+
+GOLANGCI-LINT=$(PROJECT_PATH)/bin/golangci-lint
+$(GOLANGCI-LINT):
+	mkdir -p $(PROJECT_PATH)/bin
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_PATH)/bin v1.41.1
+
+.PHONY: golangci-lint
+golangci-lint: $(GOLANGCI-LINT)
+
+.PHONY: run-lint
+run-lint: $(GOLANGCI-LINT)
+	$(GOLANGCI-LINT) run
