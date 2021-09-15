@@ -33,10 +33,11 @@ func TestIsURL(t *testing.T) {
 		{"https://www.example.com:443/resources/a.yaml", true},
 		{"/home/testing-path.yaml", false},
 		{"testing-path.yaml", false},
-		{"alskjff#?asf//dfas", false},
+		{"alskjff#?asf//dfas", true},
 	}
 
 	for i, tc := range cases {
+		fmt.Println(tc.url)
 		t.Run(fmt.Sprintf("test-%d", i), func(subT *testing.T) {
 			_, res := ParseURL(tc.url)
 			if res != tc.expected {
