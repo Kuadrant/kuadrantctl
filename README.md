@@ -7,7 +7,7 @@ Kuadrant configuration command line utility
 Use `go get` to install the latest version of the library. This command will install the `kuadrantctl` binary executable in `$GOBIN` (defaulting to `$GOPATH/bin`).
 
 ```
-go get -u github.com/kuadrant/kuadrantctl
+go install github.com/kuadrant/kuadrantctl@latest
 ```
 
 ## Commands

@@ -19,9 +19,8 @@ import (
 	"encoding/json"
 	"os"
 
+	kctlrv1beta1 "github.com/kuadrant/kuadrant-controller/apis/networking/v1beta1"
 	"github.com/spf13/cobra"
-
-	"github.com/kuadrant/kuadrantctl/pkg/kuadrantapi"
 )
 
 var apiGenerateOutputFlag string
@@ -39,11 +38,7 @@ kuadrantctl api generate oas3-resource (/path/to/your/spec/file.[json|yaml|yml] 
 Outputs to the console by default.`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		apiLoader := kuadrantapi.NewLoader()
-		api, err := apiLoader.LoadFromResource(args[0])
-		if err != nil {
-			return err
-		}
+		api := &kctlrv1beta1.API{}
 
 		// Using json serializer because
 		// currently (github.com/kuadrant/kuadrant-controller#0.0.1-pre) API data type

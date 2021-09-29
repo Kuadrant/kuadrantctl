@@ -25,8 +25,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-
-	"github.com/kuadrant/kuadrantctl/pkg/kuadrantapi"
 )
 
 var (
@@ -74,11 +72,7 @@ func apiCreateCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	apiLoader := kuadrantapi.NewLoader()
-	api, err := apiLoader.LoadFromResource(args[0])
-	if err != nil {
-		return err
-	}
+	api := &kctlrv1beta1.API{}
 
 	api.SetNamespace(apiCreateNamespace)
 
