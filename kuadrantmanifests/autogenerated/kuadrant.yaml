@@ -436,7 +436,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - limitador.3scale.net
+  - limitador.kuadrant.io
   resources:
   - ratelimits
   verbs:
@@ -654,7 +654,7 @@ spec:
         - --config=controller_manager_config.yaml
         command:
         - /manager
-        image: quay.io/eastizle/kuadrant-controller:v0.1.0
+        image: quay.io/3scale/kuadrant-controller:v0.1.1
         livenessProbe:
           httpGet:
             path: /healthz
