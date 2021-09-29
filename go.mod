@@ -3,7 +3,6 @@ module github.com/kuadrant/kuadrantctl
 go 1.16
 
 require (
-	github.com/getkin/kin-openapi v0.63.0
 	github.com/kuadrant/kuadrant-controller v0.1.1
 	github.com/kuadrant/limitador-operator v0.2.0
 	github.com/magiconair/properties v1.8.5 // indirect
