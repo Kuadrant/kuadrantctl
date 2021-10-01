@@ -37,10 +37,15 @@ ifeq (,$(wildcard $(ISTIOCTL)))
 	}
 endif
 
+# Ginkgo tool
+GINKGO = $(PROJECT_PATH)/bin/ginkgo
+$(GINKGO):
+	$(call go-get-tool,$(GINKGO),github.com/onsi/ginkgo/ginkgo@v1.16.4)
+
 ## test: Run unit tests
 .PHONY : test
-test: fmt vet
-	$(GO) test  -v ./...
+test: fmt vet $(GINKGO)
+	$(GINKGO) -v -progress ./...
 
 ## install: Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 .PHONY : install
@@ -142,3 +147,4 @@ golangci-lint: $(GOLANGCI-LINT)
 .PHONY: run-lint
 run-lint: $(GOLANGCI-LINT)
 	$(GOLANGCI-LINT) run --timeout 2m
+
