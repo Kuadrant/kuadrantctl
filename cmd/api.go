@@ -19,13 +19,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// apiCmd represents the api command
-var apiCmd = &cobra.Command{
-	Use:   "api",
-	Short: "Commands related to Kuadrant API's",
-	Long:  "The api command provides subcommands to manage kuadrant API manifests",
-}
+func apiCommand() *cobra.Command {
+	apiCmd := &cobra.Command{
+		Use:   "api",
+		Short: "Commands related to Kuadrant API's",
+		Long:  "The api command provides subcommands to manage kuadrant API manifests",
+	}
 
-func init() {
-	rootCmd.AddCommand(apiCmd)
+	apiCmd.AddCommand(apiApplyCommand())
+
+	return apiCmd
 }

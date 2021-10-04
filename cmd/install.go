@@ -46,22 +46,28 @@ var (
 	installNamespace string = "kuadrant-system"
 )
 
-// installCmd represents the install command
-var installCmd = &cobra.Command{
-	Use:   "install",
-	Short: "Applies a kuadrant manifest bundle, installing or reconfiguring kuadrant on a cluster",
-	Long:  "The install command applies kuadrant manifest bundle and applies it to a cluster.",
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		// Required to have controller-runtim config package read the kubeconfig arg
-		err := flag.CommandLine.Parse([]string{"-kubeconfig", installKubeConfig})
-		if err != nil {
-			return err
-		}
-		return nil
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return installRun(cmd, args)
-	},
+func installCommand() *cobra.Command {
+	installCmd := &cobra.Command{
+		Use:   "install",
+		Short: "Applies a kuadrant manifest bundle, installing or reconfiguring kuadrant on a cluster",
+		Long:  "The install command applies kuadrant manifest bundle and applies it to a cluster.",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Required to have controller-runtim config package read the kubeconfig arg
+			err := flag.CommandLine.Parse([]string{"-kubeconfig", installKubeConfig})
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return installRun(cmd, args)
+		},
+	}
+
+	// TODO(eastizle): add context flag to switch between kubeconfig contexts
+	// It would require using config.GetConfigWithContext(context string) (*rest.Config, error)
+	installCmd.PersistentFlags().StringVarP(&installKubeConfig, "kubeconfig", "", "", "Kubernetes configuration file")
+	return installCmd
 }
 
 func installRun(cmd *cobra.Command, args []string) error {
@@ -253,11 +259,4 @@ func deployRateLimitProvider(k8sClient client.Client) error {
 	limitadorObj := limitador.Limitador(installNamespace)
 	logf.Log.Info("Deploying limitador instance", "version", *limitadorObj.Spec.Version)
 	return utils.CreateOnlyK8SObject(k8sClient, limitadorObj)
-}
-
-func init() {
-	// TODO(eastizle): add context flag to switch between kubeconfig contexts
-	// It would require using config.GetConfigWithContext(context string) (*rest.Config, error)
-	installCmd.PersistentFlags().StringVarP(&installKubeConfig, "kubeconfig", "", "", "Kubernetes configuration file")
-	rootCmd.AddCommand(installCmd)
 }
