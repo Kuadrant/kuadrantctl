@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"context"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -40,6 +41,15 @@ var _ = Describe("the install command", func() {
 		desiredTestNamespace := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: installNamespace}}
 		err := testK8sClient.Delete(context.Background(), desiredTestNamespace, client.PropagationPolicy(metav1.DeletePropagationForeground))
 		Expect(err).ToNot(HaveOccurred())
+		Eventually(func() bool {
+			existingNamespace := &corev1.Namespace{}
+			err := testK8sClient.Get(context.Background(), types.NamespacedName{Name: installNamespace}, existingNamespace)
+			if err != nil && apierrors.IsNotFound(err) {
+				return true
+			}
+			return false
+		}, 2*time.Minute, 5*time.Second).Should(BeTrue())
+
 	})
 
 	It("should deploy kuadrant dependency services", func() {

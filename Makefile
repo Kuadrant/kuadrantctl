@@ -45,7 +45,9 @@ $(GINKGO):
 ## test: Run unit tests
 .PHONY : test
 test: fmt vet $(GINKGO)
-	$(GINKGO) -v -progress ./...
+	# huffle both the order in which specs within a suite run, and the order in which different suites run
+	# You can always rerun a given ordering later by passing the --seed flag a matching seed.
+	$(GINKGO) --randomizeAllSpecs --randomizeSuites -v -progress --trace ./...
 
 ## install: Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 .PHONY : install
@@ -133,7 +135,7 @@ cluster-cleanup: $(KIND)
 	$(KIND) delete cluster --name $(KIND_CLUSTER_NAME)
 
 .PHONY : cluster-setup
-cluster-setup: $(KIND)
+cluster-setup: $(KIND) cluster-cleanup
 	$(KIND) create cluster --name $(KIND_CLUSTER_NAME) --config utils/kind/cluster.yaml
 
 GOLANGCI-LINT=$(PROJECT_PATH)/bin/golangci-lint
