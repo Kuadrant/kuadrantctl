@@ -40,9 +40,11 @@ jobs:
       - name: Check cluster info
         run: |
           kubectl cluster-info dump
-      - name: run tests
+      - name: Run tests
         run: |
           make test
+      - name: Report to CodeCov
+        uses: codecov/codecov-action@v2
 
   verify-istio-manifest:
     name: Verify istio manifests

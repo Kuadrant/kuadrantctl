@@ -47,7 +47,7 @@ $(GINKGO):
 test: fmt vet $(GINKGO)
 	# huffle both the order in which specs within a suite run, and the order in which different suites run
 	# You can always rerun a given ordering later by passing the --seed flag a matching seed.
-	$(GINKGO) --randomizeAllSpecs --randomizeSuites -v -progress --trace ./...
+	$(GINKGO) --randomizeAllSpecs --randomizeSuites -v -progress --trace --cover ./...
 
 ## install: Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 .PHONY : install
