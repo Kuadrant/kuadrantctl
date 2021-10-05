@@ -45,6 +45,8 @@ jobs:
           make test
       - name: Report to CodeCov
         uses: codecov/codecov-action@v2
+        with:
+          files: "*.coverprofile"
 
   verify-istio-manifest:
     name: Verify istio manifests
