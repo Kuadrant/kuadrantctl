@@ -34,7 +34,7 @@ Flags:
       --api-name string          If not set, the name of the API can be matched with the service name
   -h, --help                     help for apply
       --kubeconfig string        Kubernetes configuration file
-      --match-path string        Define a single specific path, prefix or regex
+      --match-path string        Define a single specific path, prefix or regex (default "/")
       --match-path-type string   Specifies how to match against the matchpath value. Accepted values are Exact, Prefix and RegularExpression. Defaults to Prefix (default "Prefix")
   -n, --namespace string         Service namespace (required)
       --oas string               /path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR -

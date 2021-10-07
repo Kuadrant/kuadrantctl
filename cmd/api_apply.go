@@ -1,18 +1,16 @@
-/*
-Copyright 2021 Red Hat, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+//Copyright 2021 Red Hat, Inc.
+//
+//Licensed under the Apache License, Version 2.0 (the "License");
+//you may not use this file except in compliance with the License.
+//You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+//Unless required by applicable law or agreed to in writing, software
+//distributed under the License is distributed on an "AS IS" BASIS,
+//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//See the License for the specific language governing permissions and
+//limitations under the License.
 package cmd
 
 import (
@@ -65,10 +63,6 @@ var apiApplyCmd = &cobra.Command{
 
 		if apiApplyScheme != "http" && apiApplyScheme != "https" {
 			return errors.New("not valid scheme. Only ['http', 'https'] allowed")
-		}
-
-		if apiApplyMatchPath == "" && apiApplyOAS == "" {
-			return errors.New("one of --match-path or --oas is required")
 		}
 
 		pathMatchType := gatewayapiv1alpha1.PathMatchType(apiApplyMatchPathTypeStr)
@@ -168,9 +162,16 @@ func runApiApply(cmd *cobra.Command, args []string) error {
 					Port:      &destinationPort,
 				},
 			},
+			// Default value for mappings is path match / with Prefix type
+			Mappings: kctlrv1beta1.APIMappings{
+				HTTPPathMatch: &gatewayapiv1alpha1.HTTPPathMatch{
+					Type: &apiApplyMatchPathType, Value: &apiApplyMatchPath,
+				},
+			},
 		},
 	}
 
+	// default value for the mappings
 	if apiApplyOAS != "" {
 		dataRaw, err := utils.ReadExternalResource(apiApplyOAS)
 		if err != nil {
@@ -184,12 +185,6 @@ func runApiApply(cmd *cobra.Command, args []string) error {
 
 		dataTmp := string(dataRaw)
 		api.Spec.Mappings = kctlrv1beta1.APIMappings{OAS: &dataTmp}
-	}
-
-	if apiApplyMatchPath != "" {
-		api.Spec.Mappings = kctlrv1beta1.APIMappings{
-			HTTPPathMatch: &gatewayapiv1alpha1.HTTPPathMatch{Type: &apiApplyMatchPathType, Value: &apiApplyMatchPath},
-		}
 	}
 
 	if apiApplyToStdout {
@@ -229,7 +224,7 @@ func init() {
 	apiApplyCmd.Flags().StringVar(&apiApplyAPIName, "api-name", "", "If not set, the name of the API can be matched with the service name")
 	apiApplyCmd.Flags().StringVar(&apiApplyTag, "tag", "", "A special tag used to distinguish this deployment between several instances of the API")
 	apiApplyCmd.Flags().StringVar(&apiApplyPortStr, "port", "", "Only required if there are multiple ports in the service. Either the Name of the port or the Number")
-	apiApplyCmd.Flags().StringVar(&apiApplyMatchPath, "match-path", "", "Define a single specific path, prefix or regex")
+	apiApplyCmd.Flags().StringVar(&apiApplyMatchPath, "match-path", "/", "Define a single specific path, prefix or regex")
 	apiApplyCmd.Flags().StringVar(&apiApplyMatchPathTypeStr, "match-path-type", "Prefix", "Specifies how to match against the matchpath value. Accepted values are Exact, Prefix and RegularExpression. Defaults to Prefix")
 	apiApplyCmd.Flags().StringVar(&apiApplyOAS, "oas", "", "/path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR -")
 	apiApplyCmd.Flags().BoolVar(&apiApplyToStdout, "to-stdout", false, "Serialize the kuadrant API object in stdout instead of applying to the cluster")
