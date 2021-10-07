@@ -28,6 +28,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	gatewayapiv1alpha1 "sigs.k8s.io/gateway-api/apis/v1alpha1"
 	"sigs.k8s.io/yaml"
 
@@ -185,6 +186,12 @@ func runApiApply(cmd *cobra.Command, args []string) error {
 
 		dataTmp := string(dataRaw)
 		api.Spec.Mappings = kctlrv1beta1.APIMappings{OAS: &dataTmp}
+	}
+
+	// Add owner reference. This is not a controller owner reference
+	err = controllerutil.SetOwnerReference(service, api, scheme.Scheme)
+	if err != nil {
+		return err
 	}
 
 	if apiApplyToStdout {
