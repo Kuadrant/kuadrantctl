@@ -50,37 +50,63 @@ var (
 	apiApplyToStdout         bool
 )
 
-// apiApplyCmd represents the api apply command
-var apiApplyCmd = &cobra.Command{
-	Use:   "apply",
-	Short: "Applies a Kuadrant API, installing on a cluster",
-	Long:  "The apply command allows easily to create and update existing *kuadrant API* custom resources",
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		// Required to have controller-runtim config package read the kubeconfig arg
-		err := flag.CommandLine.Parse([]string{"-kubeconfig", kubeConfig})
-		if err != nil {
-			return err
-		}
+func apiApplyCommand() *cobra.Command {
+	apiApplyCmd := &cobra.Command{
+		Use:   "apply",
+		Short: "Applies a Kuadrant API, installing on a cluster",
+		Long:  "The apply command allows easily to create and update existing *kuadrant API* custom resources",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Required to have controller-runtim config package read the kubeconfig arg
+			err := flag.CommandLine.Parse([]string{"-kubeconfig", kubeConfig})
+			if err != nil {
+				return err
+			}
 
-		if apiApplyScheme != "http" && apiApplyScheme != "https" {
-			return errors.New("not valid scheme. Only ['http', 'https'] allowed")
-		}
+			if apiApplyScheme != "http" && apiApplyScheme != "https" {
+				return errors.New("not valid scheme. Only ['http', 'https'] allowed")
+			}
 
-		pathMatchType := gatewayapiv1alpha1.PathMatchType(apiApplyMatchPathTypeStr)
-		switch pathMatchType {
-		case gatewayapiv1alpha1.PathMatchExact, gatewayapiv1alpha1.PathMatchPrefix, gatewayapiv1alpha1.PathMatchRegularExpression:
-			apiApplyMatchPathType = pathMatchType
-		default:
-			return fmt.Errorf("not valid match-path-type. Only ['%s', '%s', '%s'] allowed",
-				gatewayapiv1alpha1.PathMatchExact, gatewayapiv1alpha1.PathMatchPrefix,
-				gatewayapiv1alpha1.PathMatchRegularExpression)
-		}
 
-		return nil
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return runApiApply(cmd, args)
-	},
+			pathMatchType := gatewayapiv1alpha1.PathMatchType(apiApplyMatchPathTypeStr)
+			switch pathMatchType {
+			case gatewayapiv1alpha1.PathMatchExact, gatewayapiv1alpha1.PathMatchPrefix, gatewayapiv1alpha1.PathMatchRegularExpression:
+				apiApplyMatchPathType = pathMatchType
+			default:
+				return fmt.Errorf("not valid match-path-type. Only ['%s', '%s', '%s'] allowed",
+					gatewayapiv1alpha1.PathMatchExact, gatewayapiv1alpha1.PathMatchPrefix,
+					gatewayapiv1alpha1.PathMatchRegularExpression)
+			}
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runApiApply(cmd, args)
+		},
+	}
+
+	// TODO(eastizle): add context flag to switch between kubeconfig contexts
+	// It would require using config.GetConfigWithContext(context string) (*rest.Config, error)
+	apiApplyCmd.PersistentFlags().StringVar(&kubeConfig, "kubeconfig", "", "Kubernetes configuration file")
+	apiApplyCmd.Flags().StringVar(&apiApplyServiceName, "service-name", "", "Service name (required)")
+	err := apiApplyCmd.MarkFlagRequired("service-name")
+	if err != nil {
+		panic(err)
+	}
+	apiApplyCmd.Flags().StringVarP(&apiApplyServiceNamespace, "namespace", "n", "", "Service namespace (required)")
+	err = apiApplyCmd.MarkFlagRequired("namespace")
+	if err != nil {
+		panic(err)
+	}
+	apiApplyCmd.Flags().StringVar(&apiApplyScheme, "scheme", "http", "Either HTTP or HTTPS specifies how the kuadrant gateway will connect to this API")
+	apiApplyCmd.Flags().StringVar(&apiApplyAPIName, "api-name", "", "If not set, the name of the API can be matched with the service name")
+	apiApplyCmd.Flags().StringVar(&apiApplyTag, "tag", "", "A special tag used to distinguish this deployment between several instances of the API")
+	apiApplyCmd.Flags().StringVar(&apiApplyPortStr, "port", "", "Only required if there are multiple ports in the service. Either the Name of the port or the Number")
+	apiApplyCmd.Flags().StringVar(&apiApplyMatchPath, "match-path", "/", "Define a single specific path, prefix or regex")
+	apiApplyCmd.Flags().StringVar(&apiApplyMatchPathTypeStr, "match-path-type", "Prefix", "Specifies how to match against the matchpath value. Accepted values are Exact, Prefix and RegularExpression. Defaults to Prefix")
+	apiApplyCmd.Flags().StringVar(&apiApplyOAS, "oas", "", "/path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR -")
+	apiApplyCmd.Flags().BoolVar(&apiApplyToStdout, "to-stdout", false, "Serialize the kuadrant API object in stdout instead of applying to the cluster")
+
+	return apiApplyCmd
 }
 
 func runApiApply(cmd *cobra.Command, args []string) error {
@@ -172,7 +198,6 @@ func runApiApply(cmd *cobra.Command, args []string) error {
 		},
 	}
 
-	// default value for the mappings
 	if apiApplyOAS != "" {
 		dataRaw, err := utils.ReadExternalResource(apiApplyOAS)
 		if err != nil {
@@ -211,29 +236,4 @@ func runApiApply(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
-}
-
-func init() {
-	// TODO(eastizle): add context flag to switch between kubeconfig contexts
-	// It would require using config.GetConfigWithContext(context string) (*rest.Config, error)
-	apiApplyCmd.PersistentFlags().StringVar(&kubeConfig, "kubeconfig", "", "Kubernetes configuration file")
-	apiApplyCmd.Flags().StringVar(&apiApplyServiceName, "service-name", "", "Service name (required)")
-	err := apiApplyCmd.MarkFlagRequired("service-name")
-	if err != nil {
-		panic(err)
-	}
-	apiApplyCmd.Flags().StringVarP(&apiApplyServiceNamespace, "namespace", "n", "", "Service namespace (required)")
-	err = apiApplyCmd.MarkFlagRequired("namespace")
-	if err != nil {
-		panic(err)
-	}
-	apiApplyCmd.Flags().StringVar(&apiApplyScheme, "scheme", "http", "Either HTTP or HTTPS specifies how the kuadrant gateway will connect to this API")
-	apiApplyCmd.Flags().StringVar(&apiApplyAPIName, "api-name", "", "If not set, the name of the API can be matched with the service name")
-	apiApplyCmd.Flags().StringVar(&apiApplyTag, "tag", "", "A special tag used to distinguish this deployment between several instances of the API")
-	apiApplyCmd.Flags().StringVar(&apiApplyPortStr, "port", "", "Only required if there are multiple ports in the service. Either the Name of the port or the Number")
-	apiApplyCmd.Flags().StringVar(&apiApplyMatchPath, "match-path", "/", "Define a single specific path, prefix or regex")
-	apiApplyCmd.Flags().StringVar(&apiApplyMatchPathTypeStr, "match-path-type", "Prefix", "Specifies how to match against the matchpath value. Accepted values are Exact, Prefix and RegularExpression. Defaults to Prefix")
-	apiApplyCmd.Flags().StringVar(&apiApplyOAS, "oas", "", "/path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR -")
-	apiApplyCmd.Flags().BoolVar(&apiApplyToStdout, "to-stdout", false, "Serialize the kuadrant API object in stdout instead of applying to the cluster")
-	apiCmd.AddCommand(apiApplyCmd)
 }

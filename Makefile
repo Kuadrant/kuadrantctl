@@ -37,10 +37,17 @@ ifeq (,$(wildcard $(ISTIOCTL)))
 	}
 endif
 
+# Ginkgo tool
+GINKGO = $(PROJECT_PATH)/bin/ginkgo
+$(GINKGO):
+	$(call go-get-tool,$(GINKGO),github.com/onsi/ginkgo/ginkgo@v1.16.4)
+
 ## test: Run unit tests
 .PHONY : test
-test: fmt vet
-	$(GO) test  -v ./...
+test: fmt vet $(GINKGO)
+	# huffle both the order in which specs within a suite run, and the order in which different suites run
+	# You can always rerun a given ordering later by passing the --seed flag a matching seed.
+	$(GINKGO) --randomizeAllSpecs --randomizeSuites -v -progress --trace --cover ./...
 
 ## install: Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 .PHONY : install
@@ -128,7 +135,7 @@ cluster-cleanup: $(KIND)
 	$(KIND) delete cluster --name $(KIND_CLUSTER_NAME)
 
 .PHONY : cluster-setup
-cluster-setup: $(KIND)
+cluster-setup: $(KIND) cluster-cleanup
 	$(KIND) create cluster --name $(KIND_CLUSTER_NAME) --config utils/kind/cluster.yaml
 
 GOLANGCI-LINT=$(PROJECT_PATH)/bin/golangci-lint
@@ -142,3 +149,4 @@ golangci-lint: $(GOLANGCI-LINT)
 .PHONY: run-lint
 run-lint: $(GOLANGCI-LINT)
 	$(GOLANGCI-LINT) run --timeout 2m
+

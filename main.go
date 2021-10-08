@@ -15,8 +15,16 @@ limitations under the License.
 */
 package main
 
-import "github.com/kuadrant/kuadrantctl/cmd"
+import (
+	"os"
+
+	"github.com/kuadrant/kuadrantctl/cmd"
+)
 
 func main() {
-	cmd.Execute()
+	rootCmd := cmd.GetRootCmd(os.Args[1:])
+
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }

@@ -26,50 +26,48 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// versionCmd represents the version command
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print the version number of kuadrantctl",
-	Long:  "Print the version number of kuadrantctl",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		err := utils.SetupScheme()
-		if err != nil {
-			return err
-		}
+func versionCommand() *cobra.Command {
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Print the version number of kuadrantctl",
+		Long:  "Print the version number of kuadrantctl",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := utils.SetupScheme()
+			if err != nil {
+				return err
+			}
 
-		logf.Log.Info(fmt.Sprintf("kuadrantctl version: %s", version.Version))
+			logf.Log.Info(fmt.Sprintf("kuadrantctl version: %s", version.Version))
 
-		istioVersion, err := utils.IstioImage()
-		if err != nil {
-			return err
-		}
-		logf.Log.Info(fmt.Sprintf("Istio version: %s", istioVersion))
+			istioVersion, err := utils.IstioImage()
+			if err != nil {
+				return err
+			}
+			logf.Log.Info(fmt.Sprintf("Istio version: %s", istioVersion))
 
-		authorinoVersion, err := utils.AuthorinoImage()
-		if err != nil {
-			return err
-		}
-		logf.Log.Info(fmt.Sprintf("Authorino version: %s", authorinoVersion))
+			authorinoVersion, err := utils.AuthorinoImage()
+			if err != nil {
+				return err
+			}
+			logf.Log.Info(fmt.Sprintf("Authorino version: %s", authorinoVersion))
 
-		limitadorOperatorVersion, err := utils.LimitadorOperatorImage()
-		if err != nil {
-			return err
-		}
-		logf.Log.Info(fmt.Sprintf("Limitador operator version: %s", limitadorOperatorVersion))
+			limitadorOperatorVersion, err := utils.LimitadorOperatorImage()
+			if err != nil {
+				return err
+			}
+			logf.Log.Info(fmt.Sprintf("Limitador operator version: %s", limitadorOperatorVersion))
 
-		limitadorObj := limitador.Limitador(installNamespace)
-		logf.Log.Info(fmt.Sprintf("Limitador version: %s", *limitadorObj.Spec.Version))
+			limitadorObj := limitador.Limitador(installNamespace)
+			logf.Log.Info(fmt.Sprintf("Limitador version: %s", *limitadorObj.Spec.Version))
 
-		kuadrantControllerVersion, err := utils.KuadrantControllerImage()
-		if err != nil {
-			return err
-		}
-		logf.Log.Info(fmt.Sprintf("Kuadrant controller version: %s", kuadrantControllerVersion))
+			kuadrantControllerVersion, err := utils.KuadrantControllerImage()
+			if err != nil {
+				return err
+			}
+			logf.Log.Info(fmt.Sprintf("Kuadrant controller version: %s", kuadrantControllerVersion))
 
-		return nil
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(versionCmd)
+			return nil
+		},
+	}
+	return versionCmd
 }

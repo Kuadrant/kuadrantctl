@@ -22,22 +22,29 @@ import (
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
 
-// unInstallCmd represents the uninstall command
-var unInstallCmd = &cobra.Command{
-	Use:   "uninstall",
-	Short: "Uninstalling kuadrant from the cluster",
-	Long:  "The uninstall command removes kuadrant manifest bundle from the cluster.",
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		// Required to have controller-runtim config package read the kubeconfig arg
-		err := flag.CommandLine.Parse([]string{"-kubeconfig", installKubeConfig})
-		if err != nil {
-			return err
-		}
-		return nil
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return unInstallRun(cmd, args)
-	},
+func uninstallCommand() *cobra.Command {
+	unInstallCmd := &cobra.Command{
+		Use:   "uninstall",
+		Short: "Uninstalling kuadrant from the cluster",
+		Long:  "The uninstall command removes kuadrant manifest bundle from the cluster.",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Required to have controller-runtim config package read the kubeconfig arg
+			err := flag.CommandLine.Parse([]string{"-kubeconfig", installKubeConfig})
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return unInstallRun(cmd, args)
+		},
+	}
+
+	// TODO(eastizle): add context flag to switch between kubeconfig contexts
+	// It would require using config.GetConfigWithContext(context string) (*rest.Config, error)
+	unInstallCmd.PersistentFlags().StringVarP(&installKubeConfig, "kubeconfig", "", "", "Kubernetes configuration file")
+
+	return unInstallCmd
 }
 
 func unInstallRun(cmd *cobra.Command, args []string) error {
@@ -159,11 +166,4 @@ func delete(k8sClient client.Client) utils.DecodeCallback {
 
 		return utils.DeleteK8SObject(k8sClient, obj)
 	}
-}
-
-func init() {
-	// TODO(eastizle): add context flag to switch between kubeconfig contexts
-	// It would require using config.GetConfigWithContext(context string) (*rest.Config, error)
-	unInstallCmd.PersistentFlags().StringVarP(&installKubeConfig, "kubeconfig", "", "", "Kubernetes configuration file")
-	rootCmd.AddCommand(unInstallCmd)
 }
