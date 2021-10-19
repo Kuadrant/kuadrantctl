@@ -41,18 +41,17 @@ spec:
             description: APIProductSpec defines the desired state of APIProduct
             properties:
               APIs:
+                description: The list of kuadrant API to be protected
                 items:
                   properties:
-                    mapping:
-                      properties:
-                        prefix:
-                          type: string
-                      required:
-                      - prefix
-                      type: object
                     name:
+                      description: Kuadrant API object name
                       type: string
                     namespace:
+                      description: Kuadrant API object namespace
+                      type: string
+                    prefix:
+                      description: Public prefix path to be added to all paths exposed by the API
                       type: string
                     tag:
                       type: string
@@ -60,18 +59,13 @@ spec:
                   - name
                   - namespace
                   type: object
+                minItems: 1
                 type: array
-              information:
-                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster Important: Run "make" to regenerate code after modifying this file'
-                properties:
-                  description:
-                    type: string
-                  owner:
-                    type: string
-                required:
-                - description
-                - owner
-                type: object
+              hosts:
+                description: The destination hosts to which traffic is being sent. Could be a DNS name with wildcard prefix or an IP address.  Depending on the platform, short-names can also be used instead of a FQDN (i.e. has no dots in the name). In such a scenario, the FQDN of the host would be derived based on the underlying platform.
+                items:
+                  type: string
+                type: array
               rateLimit:
                 description: RateLimit configures global rate limit parameters
                 properties:
@@ -121,19 +115,8 @@ spec:
                     - period
                     type: object
                 type: object
-              routing:
-                properties:
-                  expose:
-                    type: boolean
-                  hosts:
-                    items:
-                      type: string
-                    type: array
-                required:
-                - expose
-                - hosts
-                type: object
               securityScheme:
+                description: Configure authentication mechanisms
                 items:
                   properties:
                     apiKeyAuth:
@@ -171,9 +154,7 @@ spec:
                 type: array
             required:
             - APIs
-            - information
-            - routing
-            - securityScheme
+            - hosts
             type: object
           status:
             description: APIProductStatus defines the observed state of APIProduct
@@ -430,6 +411,13 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
   - services
   verbs:
   - get
@@ -654,7 +642,7 @@ spec:
         - --config=controller_manager_config.yaml
         command:
         - /manager
-        image: quay.io/3scale/kuadrant-controller:v0.1.1
+        image: quay.io/3scale/kuadrant-controller:v0.1.2
         livenessProbe:
           httpGet:
             path: /healthz
