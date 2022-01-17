@@ -1,6 +1,7 @@
 package utils
 
 import (
+	authorinov1beta1 "github.com/kuadrant/authorino-operator/api/v1beta1"
 	networkingv1beta1 "github.com/kuadrant/kuadrant-controller/apis/networking/v1beta1"
 	limitadorv1alpha1 "github.com/kuadrant/limitador-operator/api/v1alpha1"
 	istio "istio.io/client-go/pkg/apis/networking/v1alpha3"
@@ -37,6 +38,11 @@ func SetupScheme() error {
 	}
 
 	err = limitadorv1alpha1.AddToScheme(scheme.Scheme)
+	if err != nil {
+		return err
+	}
+
+	err = authorinov1beta1.AddToScheme(scheme.Scheme)
 	if err != nil {
 		return err
 	}

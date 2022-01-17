@@ -1,18 +1,3 @@
-/*
-Copyright 2021 Red Hat, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
@@ -36,6 +21,7 @@ import (
 	"github.com/kuadrant/kuadrantctl/istiomanifests"
 	"github.com/kuadrant/kuadrantctl/kuadrantmanifests"
 	"github.com/kuadrant/kuadrantctl/limitadormanifests"
+	"github.com/kuadrant/kuadrantctl/pkg/authorino"
 	"github.com/kuadrant/kuadrantctl/pkg/limitador"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
@@ -131,7 +117,7 @@ func waitForDeployments(k8sClient client.Client) error {
 
 	deploymentKeys := []types.NamespacedName{
 		types.NamespacedName{Name: "kuadrant-gateway", Namespace: installNamespace},
-		types.NamespacedName{Name: "authorino-controller-manager", Namespace: installNamespace},
+		types.NamespacedName{Name: "authorino", Namespace: installNamespace},
 		types.NamespacedName{Name: "limitador", Namespace: installNamespace},
 		types.NamespacedName{Name: "kuadrant-controller-manager", Namespace: installNamespace},
 	}
@@ -170,13 +156,13 @@ func deployKuadrant(k8sClient client.Client) error {
 }
 
 func deployAuthorizationProvider(k8sClient client.Client) error {
-	authorinoVersion, err := utils.AuthorinoImage()
+	authorinoOperatorVersion, err := utils.AuthorinoOperatorImage()
 	if err != nil {
 		return err
 	}
-	logf.Log.Info("Deploying authorino", "version", authorinoVersion)
+	logf.Log.Info("Deploying authorino operator", "version", authorinoOperatorVersion)
 
-	data, err := authorinomanifests.Content()
+	data, err := authorinomanifests.OperatorContent()
 	if err != nil {
 		return err
 	}
@@ -186,7 +172,9 @@ func deployAuthorizationProvider(k8sClient client.Client) error {
 		return err
 	}
 
-	return nil
+	authorinoObj := authorino.Authorino(installNamespace)
+	logf.Log.Info("Deploying authorino instance", "version", authorinoObj.Spec.Image)
+	return utils.CreateOnlyK8SObject(k8sClient, authorinoObj)
 }
 
 func deployIngressProvider(k8sClient client.Client) error {

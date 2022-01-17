@@ -110,4 +110,4 @@ jobs:
           rm -rf /usr/local/bin/kustomize /home/runner/go/bin/controller-gen
       - name: run test
         run: |
-          make authorino-manifest-update-test
+          make authorino-operator-manifest-update-test
