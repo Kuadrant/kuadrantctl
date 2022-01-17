@@ -23,19 +23,18 @@ $(KIND):
 kind: $(KIND)
 
 # istioctl tool
-ISTIOCTL = $(PROJECT_PATH)/bin/istioctl
-ISTIOCTLVERSION = 1.9.4
-istioctl:
-ifeq (,$(wildcard $(ISTIOCTL)))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(ISTIOCTL)) ;\
-	curl -sSL https://raw.githubusercontent.com/istio/istio/master/release/downloadIstioCtl.sh | ISTIO_VERSION=$(ISTIOCTLVERSION) HOME=$(PROJECT_PATH)/bin/ sh - > /dev/null 2>&1;\
-	mv $(PROJECT_PATH)/bin/.istioctl/bin/istioctl $(ISTIOCTL) ;\
-	rm -r $(PROJECT_PATH)/bin/.istioctl ;\
-	chmod +x $(ISTIOCTL) ;\
-	}
-endif
+ISTIOCTL=$(PROJECT_PATH)/bin/istioctl
+ISTIOVERSION = 1.12.1
+$(ISTIOCTL):
+	mkdir -p $(PROJECT_PATH)/bin
+	TMP_DIR=`mktemp -d`
+	cd $$TMP_DIR
+	curl -sSL https://istio.io/downloadIstio | ISTIO_VERSION=$$ISTIOVERSION sh -
+	cp istio-$(ISTIOVERSION)/bin/istioctl ${ISTIOCTL}
+	rm -rf $$TMP_DIR
+
+.PHONY: istioctl
+istioctl: $(ISTIOCTL)
 
 # Ginkgo tool
 GINKGO = $(PROJECT_PATH)/bin/ginkgo
