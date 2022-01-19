@@ -2,14 +2,17 @@
 
 The install command applies kuadrant manifest bundle and applies it to a cluster.
 
-Install command does:
+Components being installed:
 
-* Creates kuadrant-system namespace (currently namespace name is hardcoded)
-* Deploy ingress controller (currently [istio](https://istio.io/) 1.9.4)
-* Deploy auth provider (currently [Authorino](https://github.com/Kuadrant/authorino) v0.4.0)
-* Deploy rate limit provider (currently [Limitador Operator](https://github.com/kuadrant/limitador-operator) v0.2.0)
-* Deploy [kuadrant controller](https://github.com/Kuadrant/kuadrant-controller) (currently v0.1.1)
-* Waits for deployment availabilty
+* `kuadrant-system` namespace
+* [istio](https://istio.io/) 1.12.1
+* Authentication/Authorization Service
+  * [Authorino Operator](https://github.com/kuadrant/authorino-operator) v0.1.0
+  * [Authorino](https://github.com/Kuadrant/authorino) v0.7.0
+* Rate Limit Service
+  * [Limitador Operator](https://github.com/kuadrant/limitador-operator) v0.2.0
+  * [Limitador](https://github.com/kuadrant/limitador) v0.4.0
+* [kuadrant controller](https://github.com/Kuadrant/kuadrant-controller) v0.2.0
 
 ### Usage :
 
