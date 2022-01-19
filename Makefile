@@ -27,11 +27,10 @@ ISTIOCTL=$(PROJECT_PATH)/bin/istioctl
 ISTIOVERSION = 1.12.1
 $(ISTIOCTL):
 	mkdir -p $(PROJECT_PATH)/bin
-	TMP_DIR=`mktemp -d`
-	cd $$TMP_DIR
-	curl -sSL https://istio.io/downloadIstio | ISTIO_VERSION=$$ISTIOVERSION sh -
-	cp istio-$(ISTIOVERSION)/bin/istioctl ${ISTIOCTL}
-	rm -rf $$TMP_DIR
+	$(eval TMP := $(shell mktemp -d))
+	cd $(TMP); curl -sSL https://istio.io/downloadIstio | ISTIO_VERSION=$(ISTIOVERSION) sh -
+	cp $(TMP)/istio-$(ISTIOVERSION)/bin/istioctl ${ISTIOCTL}
+	-rm -rf $(TMP)
 
 .PHONY: istioctl
 istioctl: $(ISTIOCTL)
