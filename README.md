@@ -12,6 +12,7 @@ go install github.com/kuadrant/kuadrantctl@latest
 
 ## Commands
 * [Install Kuadrant](doc/install.md)
+* [Uninstall Kuadrant](doc/uninstall.md)
 * [Apply Kuadrant API objects](doc/api-apply.md)
 
 ## Contributing
