@@ -18,6 +18,7 @@ import (
 	"github.com/kuadrant/kuadrantctl/istiomanifests"
 	"github.com/kuadrant/kuadrantctl/kuadrantmanifests"
 	"github.com/kuadrant/kuadrantctl/limitadormanifests"
+	"github.com/kuadrant/kuadrantctl/pkg/authorino"
 	"github.com/kuadrant/kuadrantctl/pkg/limitador"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
@@ -101,11 +102,15 @@ func unDeployKuadrant(k8sClient client.Client) error {
 }
 
 func unDeployAuthorizationProvider(k8sClient client.Client) error {
-	data, err := authorinomanifests.Content()
+	err := utils.DeleteK8SObject(k8sClient, authorino.Authorino(installNamespace))
 	if err != nil {
 		return err
 	}
 
+	data, err := authorinomanifests.OperatorContent()
+	if err != nil {
+		return err
+	}
 	err = utils.DecodeFile(data, scheme.Scheme, delete(k8sClient))
 	if err != nil {
 		return err

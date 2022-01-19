@@ -66,7 +66,6 @@ func apiApplyCommand() *cobra.Command {
 				return errors.New("not valid scheme. Only ['http', 'https'] allowed")
 			}
 
-
 			pathMatchType := gatewayapiv1alpha1.PathMatchType(apiApplyMatchPathTypeStr)
 			switch pathMatchType {
 			case gatewayapiv1alpha1.PathMatchExact, gatewayapiv1alpha1.PathMatchPrefix, gatewayapiv1alpha1.PathMatchRegularExpression:

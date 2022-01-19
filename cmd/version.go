@@ -1,18 +1,3 @@
-/*
-Copyright 2021 Red Hat, Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
@@ -20,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/kuadrant/kuadrantctl/pkg/authorino"
 	"github.com/kuadrant/kuadrantctl/pkg/limitador"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 	"github.com/kuadrant/kuadrantctl/version"
@@ -45,11 +31,14 @@ func versionCommand() *cobra.Command {
 			}
 			logf.Log.Info(fmt.Sprintf("Istio version: %s", istioVersion))
 
-			authorinoVersion, err := utils.AuthorinoImage()
+			authorinoOperatorVersion, err := utils.AuthorinoOperatorImage()
 			if err != nil {
 				return err
 			}
-			logf.Log.Info(fmt.Sprintf("Authorino version: %s", authorinoVersion))
+			logf.Log.Info(fmt.Sprintf("Authorino operator version: %s", authorinoOperatorVersion))
+
+			authorinoObj := authorino.Authorino(installNamespace)
+			logf.Log.Info(fmt.Sprintf("Authorino version: %s", authorinoObj.Spec.Image))
 
 			limitadorOperatorVersion, err := utils.LimitadorOperatorImage()
 			if err != nil {

@@ -36,35 +36,6 @@ func IstioImage() (string, error) {
 	return istioImage, nil
 }
 
-func AuthorinoImage() (string, error) {
-	image := "unknown"
-
-	authorinoParser := func(obj runtime.Object) error {
-		if deployment, ok := obj.(*appsv1.Deployment); ok {
-			if deployment.GetName() == "authorino-controller-manager" {
-				for _, container := range deployment.Spec.Template.Spec.Containers {
-					if container.Name == "manager" {
-						image = container.Image
-					}
-				}
-			}
-		}
-		return nil
-	}
-
-	content, err := authorinomanifests.Content()
-	if err != nil {
-		return "", err
-	}
-
-	err = DecodeFile(content, scheme.Scheme, authorinoParser)
-	if err != nil {
-		return "", err
-	}
-
-	return image, nil
-}
-
 func LimitadorOperatorImage() (string, error) {
 	image := "unknown"
 
@@ -111,6 +82,35 @@ func KuadrantControllerImage() (string, error) {
 	}
 
 	content, err := kuadrantmanifests.Content()
+	if err != nil {
+		return "", err
+	}
+
+	err = DecodeFile(content, scheme.Scheme, parser)
+	if err != nil {
+		return "", err
+	}
+
+	return image, nil
+}
+
+func AuthorinoOperatorImage() (string, error) {
+	image := "unknown"
+
+	parser := func(obj runtime.Object) error {
+		if deployment, ok := obj.(*appsv1.Deployment); ok {
+			if deployment.GetName() == "authorino-operator-controller-manager" {
+				for _, container := range deployment.Spec.Template.Spec.Containers {
+					if container.Name == "manager" {
+						image = container.Image
+					}
+				}
+			}
+		}
+		return nil
+	}
+
+	content, err := authorinomanifests.OperatorContent()
 	if err != nil {
 		return "", err
 	}

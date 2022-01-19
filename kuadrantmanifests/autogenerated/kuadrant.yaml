@@ -642,7 +642,7 @@ spec:
         - --config=controller_manager_config.yaml
         command:
         - /manager
-        image: quay.io/3scale/kuadrant-controller:v0.1.2
+        image: quay.io/3scale/kuadrant-controller:v0.2.0
         livenessProbe:
           httpGet:
             path: /healthz
