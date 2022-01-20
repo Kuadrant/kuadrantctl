@@ -17,7 +17,7 @@ func Authorino(ns string) *authorinov1beta1.Authorino {
 			Namespace: ns,
 		},
 		Spec: authorinov1beta1.AuthorinoSpec{
-			Image:       "quay.io/3scale/authorino:v0.6.0",
+			Image:       "quay.io/3scale/authorino:v0.7.0",
 			ClusterWide: true,
 			Listener: authorinov1beta1.Listener{
 				Tls: authorinov1beta1.Tls{
