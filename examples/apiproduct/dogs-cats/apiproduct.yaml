@@ -22,7 +22,7 @@ spec:
         name: APIKEY
         credential_source:
           labelSelectors:
-            secret.kuadrant.io/managed-by: authorino
+            authorino.kuadrant.io/managed-by: authorino
             api: animaltoys
   rateLimit:
     global:
