@@ -29,6 +29,7 @@ func Authorino(ns string) *authorinov1beta1.Authorino {
 					Enabled: &tlsEnabledTmp,
 				},
 			},
+			SecretLabelSelectors: "authorino.kuadrant.io/managed-by=authorino",
 		},
 	}
 }

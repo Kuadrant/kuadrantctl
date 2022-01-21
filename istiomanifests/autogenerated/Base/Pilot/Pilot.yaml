@@ -186,7 +186,7 @@ data:
     extensionProviders:
     - envoyExtAuthzGrpc:
         port: 50051
-        service: authorino-authorization.kuadrant-system.svc.cluster.local
+        service: authorino-authorino-authorization.kuadrant-system.svc.cluster.local
       name: kuadrant-authorization
     rootNamespace: kuadrant-system
     trustDomain: cluster.local
