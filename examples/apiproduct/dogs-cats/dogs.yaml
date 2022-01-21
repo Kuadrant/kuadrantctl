@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,7 +16,7 @@ spec:
     spec:
       containers:
         - name: dogs
-          image: quay.io/3scale/authorino:echo-api
+          image: quay.io/3scale/authorino-examples:talker-api
           env:
             - name: PORT
               value: "3000"
