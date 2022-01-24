@@ -30,4 +30,4 @@ jobs:
           make install
       - name: run command
         run: |
-          kuadrantctl install
+          bin/kuadrantctl install
