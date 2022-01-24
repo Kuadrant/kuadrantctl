@@ -14,7 +14,8 @@ go install github.com/kuadrant/kuadrantctl@latest
 * [Install Kuadrant](doc/install.md)
 * [Uninstall Kuadrant](doc/uninstall.md)
 * [Apply Kuadrant API objects](doc/api-apply.md)
-* [Generate Istio integration objects](doc/generate-istiointegration.md)
+* [Generate Istio virtualservice objects](doc/generate-istio-virtualservice.md)
+* [Generate Istio authenticationpolicy objects](doc/generate-istio-authorizationpolicy.md)
 
 ## Contributing
 The [Development guide](doc/development.md) describes how to build the kuadrantctl CLI and how to test your changes before submitting a patch or opening a PR.
