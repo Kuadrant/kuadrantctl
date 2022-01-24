@@ -11,7 +11,7 @@ func generateCommand() *cobra.Command {
 		Long:  "Commands related to kubernetes object generation",
 	}
 
-	cmd.AddCommand(generateIstioIntegrationCommand())
+	cmd.AddCommand(generateIstioCommand())
 
 	return cmd
 }
