@@ -70,7 +70,7 @@ func AuthConfigConditionsFromOperation(opPath, opVerb string) []authorinov1beta1
 	return []authorinov1beta1.JSONPattern{
 		{
 			JSONPatternExpression: authorinov1beta1.JSONPatternExpression{
-				Selector: "context.request.http.path",
+				Selector: `context.request.http.path@extract{"sep":"/"}`,
 				Operator: "eq",
 				Value:    opPath,
 			},
