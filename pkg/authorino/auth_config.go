@@ -12,6 +12,11 @@ import (
 func AuthConfigIdentitiesFromOpenAPI(oasDoc *openapi3.T) ([]*authorinov1beta1.Identity, error) {
 	identities := []*authorinov1beta1.Identity{}
 
+	workloadName, err := utils.K8sNameFromOpenAPITitle(oasDoc)
+	if err != nil {
+		return nil, err
+	}
+
 	for path, pathItem := range oasDoc.Paths {
 		for opVerb, operation := range pathItem.Operations() {
 			secReqsP := utils.OpenAPIOperationSecRequirements(oasDoc, operation)
@@ -50,7 +55,7 @@ func AuthConfigIdentitiesFromOpenAPI(oasDoc *openapi3.T) ([]*authorinov1beta1.Id
 
 					identity, err := AuthConfigIdentityFromSecurityRequirement(
 						operation.OperationID, // TODO(eastizle): OperationID can be null, fallback to some custom name
-						path, opVerb, secScheme)
+						path, opVerb, workloadName, secScheme)
 					if err != nil {
 						return nil, err
 					}
@@ -85,20 +90,19 @@ func AuthConfigConditionsFromOperation(opPath, opVerb string) []authorinov1beta1
 	}
 }
 
-func AuthConfigIdentityFromSecurityRequirement(name, opPath, opVerb string, secScheme *openapi3.SecurityScheme) (*authorinov1beta1.Identity, error) {
+func AuthConfigIdentityFromSecurityRequirement(name, opPath, opVerb, workloadName string, secScheme *openapi3.SecurityScheme) (*authorinov1beta1.Identity, error) {
 	if secScheme == nil {
 		return nil, fmt.Errorf("sec scheme nil for operation path:%s method:%s", opPath, opVerb)
 	}
 
 	identity := &authorinov1beta1.Identity{
-		// TODO(eastizle): OperationID can be null, fallback to some custom name
 		Name:       name,
 		Conditions: AuthConfigConditionsFromOperation(opPath, opVerb),
 	}
 
 	switch secScheme.Type {
 	case "apiKey":
-		AuthConfigIdentityFromApiKeyScheme(identity, secScheme)
+		AuthConfigIdentityFromApiKeyScheme(identity, secScheme, workloadName)
 	case "openIdConnect":
 		AuthConfigIdentityFromOIDCScheme(identity, secScheme)
 	default:
@@ -108,11 +112,12 @@ func AuthConfigIdentityFromSecurityRequirement(name, opPath, opVerb string, secS
 	return identity, nil
 }
 
-func AuthConfigIdentityFromApiKeyScheme(identity *authorinov1beta1.Identity, secScheme *openapi3.SecurityScheme) {
+func AuthConfigIdentityFromApiKeyScheme(identity *authorinov1beta1.Identity, secScheme *openapi3.SecurityScheme, workloadName string) {
 	// Fixed label selector for now
 	apikey := authorinov1beta1.Identity_APIKey{
 		LabelSelectors: map[string]string{
 			"authorino.kuadrant.io/managed-by": "authorino",
+			"app":                              workloadName,
 		},
 	}
 
