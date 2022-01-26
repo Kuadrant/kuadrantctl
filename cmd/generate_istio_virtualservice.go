@@ -55,18 +55,14 @@ func generateIstioVirtualServiceCommand() *cobra.Command {
 	}
 
 	// service namespace
-	cmd.Flags().StringVarP(&generateIstioVSServiceNamespace, "namespace", "n", "", "Service namespace (required)")
-	err = cmd.MarkFlagRequired("namespace")
+	cmd.Flags().StringVarP(&generateIstioVSServiceNamespace, "service-namespace", "", "", "Service namespace (required)")
+	err = cmd.MarkFlagRequired("service-namespace")
 	if err != nil {
 		panic(err)
 	}
 
 	// service port
-	cmd.Flags().Int32VarP(&generateIstioVSServicePort, "service-port", "p", 80, "Service port (required)")
-	err = cmd.MarkFlagRequired("namespace")
-	if err != nil {
-		panic(err)
-	}
+	cmd.Flags().Int32VarP(&generateIstioVSServicePort, "service-port", "p", 80, "Service port")
 
 	// gateways
 	cmd.Flags().StringSliceVar(&generateIstioVSGateways, "gateway", []string{}, "Gateways (required)")

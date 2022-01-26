@@ -20,13 +20,13 @@ Usage:
   kuadrantctl generate istio virtualservice [flags]
 
 Flags:
-      --gateway strings       Gateways (required)
-  -h, --help                  help for virtualservice
-  -n, --namespace string      Service namespace (required)
-      --oas string            /path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR - (required)
-      --public-host string    The address used by a client when attempting to connect to a service (required)
-      --service-name string   Service name (required)
-  -p, --service-port int32    Service port (required) (default 80)
+      --gateway strings            Gateways (required)
+  -h, --help                       help for virtualservice
+      --oas string                 /path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR - (required)
+      --public-host string         The address used by a client when attempting to connect to a service (required)
+      --service-name string        Service name (required)
+      --service-namespace string   Service namespace (required)
+  -p, --service-port int32         Service port (default 80)
 
 Global Flags:
   -v, --verbose   verbose output
