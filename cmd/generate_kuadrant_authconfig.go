@@ -103,6 +103,10 @@ func generateKuadrantAuthConfig(cmd *cobra.Command, doc *openapi3.T) (*authorino
 	}
 
 	authConfig := &authorinov1beta1.AuthConfig{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "AuthConfig",
+			APIVersion: "authorino.kuadrant.io/v1beta1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: objectName,
 		},
