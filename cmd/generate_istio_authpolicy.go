@@ -13,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/kuadrant/kuadrant-controller/pkg/common"
+	istioutils "github.com/kuadrant/kuadrantctl/pkg/istio"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
 
@@ -104,6 +105,8 @@ func generateIstioAuthorizationPolicy(cmd *cobra.Command, doc *openapi3.T) (*ist
 		matchLabels[labels[0]] = labels[1]
 	}
 
+	rules := istioutils.AuthorizationPolicyRulesFromOpenAPI(doc, generateIstioAPPublicHost)
+
 	authPolicy := &istiosecurity.AuthorizationPolicy{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "AuthorizationPolicy",
@@ -117,15 +120,7 @@ func generateIstioAuthorizationPolicy(cmd *cobra.Command, doc *openapi3.T) (*ist
 			Selector: &istiotypeapi.WorkloadSelector{
 				MatchLabels: matchLabels,
 			},
-			Rules: []*istiosecurityapi.Rule{
-				{
-					To: []*istiosecurityapi.Rule_To{{
-						Operation: &istiosecurityapi.Operation{
-							Hosts: []string{generateIstioAPPublicHost},
-						},
-					}},
-				},
-			},
+			Rules:  rules,
 			Action: istiosecurityapi.AuthorizationPolicy_CUSTOM,
 			ActionDetail: &istiosecurityapi.AuthorizationPolicy_Provider{
 				Provider: &istiosecurityapi.AuthorizationPolicy_ExtensionProvider{

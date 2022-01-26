@@ -44,3 +44,10 @@ func ValidateOAS3(docRaw []byte) error {
 
 	return nil
 }
+
+func OpenAPIOperationSecRequirements(oasDoc *openapi3.T, operation *openapi3.Operation) *openapi3.SecurityRequirements {
+	if operation.Security == nil {
+		return &oasDoc.Security
+	}
+	return operation.Security
+}
