@@ -82,9 +82,9 @@ func AuthConfigConditionsFromOperation(opPath, opVerb string) []authorinov1beta1
 		},
 		{
 			JSONPatternExpression: authorinov1beta1.JSONPatternExpression{
-				Selector: "context.request.http.method",
+				Selector: "context.request.http.method.@case:lower",
 				Operator: "eq",
-				Value:    opVerb,
+				Value:    strings.ToLower(opVerb),
 			},
 		},
 	}
