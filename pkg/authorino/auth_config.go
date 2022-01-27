@@ -2,6 +2,7 @@ package authorino
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	authorinov1beta1 "github.com/kuadrant/authorino/api/v1beta1"
