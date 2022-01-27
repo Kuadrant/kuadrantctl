@@ -12,7 +12,7 @@ kuadrantctl install
 ## Deploy all
 
 ```bash
-kubectl apply -f examples/dogs-cats
+kubectl apply -f examples/apiproduct/dogs-cats
 ```
 
 
