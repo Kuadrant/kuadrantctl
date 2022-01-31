@@ -1,15 +1,12 @@
 package gatewayapi
 
 import (
-	"strings"
-
 	"github.com/getkin/kin-openapi/openapi3"
 	gatewayapiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 )
 
 func HTTPRouteMatchesFromOAS(doc *openapi3.T) ([]gatewayapiv1alpha2.HTTPRouteMatch, error) {
 	httpRouteMatches := []gatewayapiv1alpha2.HTTPRouteMatch{}
-	pathMatchPathPrefix := gatewayapiv1alpha2.PathMatchPathPrefix
 	pathMatchExactPath := gatewayapiv1alpha2.PathMatchExact
 
 	for path, pathItem := range doc.Paths {
@@ -22,22 +19,14 @@ func HTTPRouteMatchesFromOAS(doc *openapi3.T) ([]gatewayapiv1alpha2.HTTPRouteMat
 
 			headers, queryParams = addRuleMatcherFromParams(operation.Parameters, headers, queryParams)
 
-			pathMatch := &pathMatchExactPath
-			for _, param := range queryParams {
-				if param.Name == strings.ToLower(string(pathMatchPathPrefix)) {
-					pathMatch = &pathMatchPathPrefix
-				}
-			}
 			pathValue := path
-			path := &gatewayapiv1alpha2.HTTPPathMatch{
-				Type:  pathMatch,
-				Value: &pathValue,
-			}
-
 			httpMethod := gatewayapiv1alpha2.HTTPMethod(verb)
 			httpRouteMatches = append(httpRouteMatches, gatewayapiv1alpha2.HTTPRouteMatch{
-				Method:      &httpMethod,
-				Path:        path,
+				Method: &httpMethod,
+				Path: &gatewayapiv1alpha2.HTTPPathMatch{
+					Type:  &pathMatchExactPath,
+					Value: &pathValue,
+				},
 				Headers:     headers,
 				QueryParams: queryParams,
 			})
