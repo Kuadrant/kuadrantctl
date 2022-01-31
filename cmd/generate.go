@@ -12,6 +12,7 @@ func generateCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(generateIstioCommand())
+	cmd.AddCommand(generateKuadrantCommand())
 
 	return cmd
 }

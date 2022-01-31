@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/getkin/kin-openapi v0.76.0
 	github.com/google/uuid v1.3.0
+	github.com/kuadrant/authorino v0.7.0
 	github.com/kuadrant/authorino-operator v0.1.0
 	github.com/kuadrant/kuadrant-controller v0.2.1
 	github.com/kuadrant/limitador-operator v0.2.0
