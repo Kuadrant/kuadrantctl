@@ -1,0 +1,39 @@
+---
+openapi: "3.1.0"
+info:
+  title: "Pet Store API"
+  version: "1.0.0"
+servers:
+  - url: https://toplevel.example.io/v1
+paths:
+  /cat:
+    get:  # No sec requirements
+      operationId: "getCat"
+      responses:
+        405:
+          description: "invalid input"
+    post:  # API key
+      operationId: "postCat"
+      security:
+        - petstore_api_key: []
+      responses:
+        405:
+          description: "invalid input"
+  /dog:
+    get:  # OIDC
+      operationId: "getDog"
+      security:
+        - petstore_oidc:
+          - read:dogs
+      responses:
+        405:
+          description: "invalid input"
+components:
+  securitySchemes:
+    petstore_api_key:
+      type: apiKey
+      name: api_key
+      in: header
+    petstore_oidc:
+      type: openIdConnect
+      openIdConnectUrl: http://example.org/auth/realms/myrealm

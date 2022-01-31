@@ -50,7 +50,7 @@ test: fmt vet $(GINKGO)
 ## install: Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 .PHONY : install
 install: fmt vet
-	$(GO) install
+	GOBIN=$(PROJECT_PATH)/bin $(GO) install
 
 .PHONY : fmt
 fmt:

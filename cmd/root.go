@@ -44,6 +44,7 @@ func GetRootCmd(args []string) *cobra.Command {
 	rootCmd.AddCommand(installCommand())
 	rootCmd.AddCommand(uninstallCommand())
 	rootCmd.AddCommand(versionCommand())
+	rootCmd.AddCommand(generateCommand())
 
 	loggerOpts := zap.Options{Development: verbose}
 	logf.SetLogger(zap.New(zap.UseFlagOptions(&loggerOpts)))

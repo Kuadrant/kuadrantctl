@@ -11,6 +11,7 @@ require (
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.15.0
 	github.com/spf13/cobra v1.2.1
+	istio.io/api v0.0.0-20211206163441-1a632586cbd4
 	istio.io/client-go v1.12.1
 	k8s.io/api v0.22.1
 	k8s.io/apiextensions-apiserver v0.22.1
