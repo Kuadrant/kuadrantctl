@@ -17,6 +17,8 @@ go install github.com/kuadrant/kuadrantctl@latest
 * [Generate Istio virtualservice objects](doc/generate-istio-virtualservice.md)
 * [Generate Istio authenticationpolicy objects](doc/generate-istio-authorizationpolicy.md)
 * [Generate kuadrat authconfig objects](doc/generate-kuadrant-authconfig.md)
+* [Generate Gateway API HTTPRoute objects](doc/generate-gateway-api-httproute.md)
+
 
 ## Contributing
 The [Development guide](doc/development.md) describes how to build the kuadrantctl CLI and how to test your changes before submitting a patch or opening a PR.

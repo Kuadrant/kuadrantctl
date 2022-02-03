@@ -1,0 +1,31 @@
+---
+openapi: "3.0.0"
+info:
+  title: "Pet Store API"
+  version: "1.0.0"
+servers:
+  - url: https://toplevel.example.io/v1
+paths:
+  /cat:
+    get:
+      parameters:
+        - in: header
+          name: X-username
+          required: true
+          schema:
+            type: string
+      operationId: "getCat"
+      responses:
+        405:
+          description: "invalid input"
+    post:
+      operationId: "postCat"
+      responses:
+        405:
+          description: "invalid input"
+  /dog:
+    get:
+      operationId: "getDog"
+      responses:
+        405:
+          description: "invalid input"
