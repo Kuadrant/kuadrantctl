@@ -13,7 +13,6 @@ go install github.com/kuadrant/kuadrantctl@latest
 ## Commands
 * [Install Kuadrant](doc/install.md)
 * [Uninstall Kuadrant](doc/uninstall.md)
-* [Apply Kuadrant API objects](doc/api-apply.md)
 * [Generate Istio virtualservice objects](doc/generate-istio-virtualservice.md)
 * [Generate Istio authenticationpolicy objects](doc/generate-istio-authorizationpolicy.md)
 * [Generate kuadrat authconfig objects](doc/generate-kuadrant-authconfig.md)
