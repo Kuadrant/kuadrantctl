@@ -23,6 +23,7 @@ Flags:
       --gateway strings            Gateways (required)
   -h, --help                       help for virtualservice
       --oas string                 /path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR - (required)
+      --path-prefix-match          Path match type (defaults to exact match type)
       --public-host string         The address used by a client when attempting to connect to a service (required)
       --service-name string        Service name (required)
       --service-namespace string   Service namespace (required)

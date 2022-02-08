@@ -21,6 +21,7 @@ var (
 	generateIstioVSServiceNamespace string
 	generateIstioVSServicePort      int32
 	generateIstioVSGateways         []string
+	generateIstioVSPrefixMatch      bool
 )
 
 func generateIstioVirtualServiceCommand() *cobra.Command {
@@ -71,6 +72,9 @@ func generateIstioVirtualServiceCommand() *cobra.Command {
 		panic(err)
 	}
 
+	// exact match
+	cmd.Flags().BoolVar(&generateIstioVSPrefixMatch, "path-prefix-match", false, "Path match type (defaults to exact match type)")
+
 	return cmd
 }
 
@@ -116,7 +120,7 @@ func generateIstioVirtualService(cmd *cobra.Command, doc *openapi3.T) (*istionet
 		Port: &istionetworkingapi.PortSelector{Number: uint32(generateIstioVSServicePort)},
 	}
 
-	httpRoutes, err := istioutils.HTTPRoutesFromOpenAPI(doc, destination)
+	httpRoutes, err := istioutils.HTTPRoutesFromOpenAPI(doc, destination, generateIstioVSPrefixMatch)
 	if err != nil {
 		return nil, err
 	}
