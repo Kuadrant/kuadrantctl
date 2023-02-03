@@ -8,9 +8,6 @@ on:
   pull_request:
     branches: [ 'main' ]
 
-  schedule:
-    - cron: "15 1 * * *"
-
 jobs:
   build:
     name: Build executable
