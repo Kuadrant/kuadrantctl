@@ -16,15 +16,16 @@ help: Makefile
 # Kind tool
 KIND = $(PROJECT_PATH)/bin/kind
 KIND_CLUSTER_NAME = kuadrant-local
+KIND_VERSION = v0.20.0
 $(KIND):
-	$(call go-get-tool,$(KIND),sigs.k8s.io/kind@v0.11.1)
+	$(call go-install-tool,$(KIND),sigs.k8s.io/kind@$(KIND_VERSION))
 
-.PHONY : kind
-kind: $(KIND)
+.PHONY: kind
+kind: $(KIND) ## Download kind locally if necessary.
 
 # istioctl tool
 ISTIOCTL=$(PROJECT_PATH)/bin/istioctl
-ISTIOVERSION = 1.12.1
+ISTIOVERSION = 1.17.2
 $(ISTIOCTL):
 	mkdir -p $(PROJECT_PATH)/bin
 	$(eval TMP := $(shell mktemp -d))
@@ -38,7 +39,7 @@ istioctl: $(ISTIOCTL)
 # Ginkgo tool
 GINKGO = $(PROJECT_PATH)/bin/ginkgo
 $(GINKGO):
-	$(call go-get-tool,$(GINKGO),github.com/onsi/ginkgo/ginkgo@v1.16.4)
+	$(call go-install-tool,$(GINKGO),github.com/onsi/ginkgo/ginkgo@v1.16.4)
 
 ## test: Run unit tests
 .PHONY : test
