@@ -36,8 +36,8 @@ const (
 func installCommand() *cobra.Command {
 	installCmd := &cobra.Command{
 		Use:   "install",
-		Short: "Applies a kuadrant manifest bundle, installing or reconfiguring kuadrant on a cluster",
-		Long:  "The install command applies kuadrant manifest bundle and applies it to a cluster.",
+		Short: "Install Kuadrant",
+		Long:  "The install command installs kuadrant in a OLM powered cluster",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// Required to have controller-runtim config package read the kubeconfig arg
 			err := flag.CommandLine.Parse([]string{"-kubeconfig", installKubeConfig})
@@ -88,11 +88,6 @@ func installRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = waitForDeployments(k8sClient)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -119,7 +114,7 @@ func waitForDeployments(k8sClient client.Client) error {
 }
 
 func deployKuadrantOperator(k8sClient client.Client) error {
-	logf.Log.Info("Deploying kuadrant operator", "version", KUADRANT_OPERATOR_VERSION)
+	logf.Log.Info("Installing kuadrant operator", "version", KUADRANT_OPERATOR_VERSION)
 
 	//apiVersion: operators.coreos.com/v1alpha1
 	//kind: Subscription
@@ -149,6 +144,61 @@ func deployKuadrantOperator(k8sClient client.Client) error {
 		return err
 	}
 
+	var installPlanKey client.ObjectKey
+
+	// Wait for the install process to be completed
+	logf.Log.Info("Waiting for the kuadrant operator installation")
+	err = wait.Poll(time.Second*2, time.Second*20, func() (bool, error) {
+		existingSubs := &operators.Subscription{}
+		err := k8sClient.Get(context.Background(), client.ObjectKeyFromObject(subs), existingSubs)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				logf.Log.Info("Subscription not available", "name", client.ObjectKeyFromObject(subs))
+				return false, nil
+			}
+			return false, err
+		}
+
+		if existingSubs.Status.Install == nil || existingSubs.Status.Install.Name == "" {
+			return false, nil
+		}
+
+		installPlanKey = client.ObjectKey{
+			Name:      existingSubs.Status.Install.Name,
+			Namespace: subs.Namespace,
+		}
+
+		return true, nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	logf.Log.Info("Waiting for the install plan", "name", installPlanKey)
+	err = wait.Poll(time.Second*5, time.Minute*2, func() (bool, error) {
+		ip := &operators.InstallPlan{}
+		err := k8sClient.Get(context.Background(), installPlanKey, ip)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
+				logf.Log.Info("Install plan not available", "name", installPlanKey)
+				return false, nil
+			}
+			return false, err
+		}
+
+		if ip.Status.Phase != operators.InstallPlanPhaseComplete {
+			logf.Log.Info("Install plan not ready", "phase", ip.Status.Phase)
+			return false, nil
+		}
+
+		return true, nil
+	})
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -164,7 +214,7 @@ func deployKuadrant(k8sClient client.Client) error {
 		return err
 	}
 
-	return nil
+	return waitForDeployments(k8sClient)
 }
 
 func createNamespace(k8sClient client.Client) error {

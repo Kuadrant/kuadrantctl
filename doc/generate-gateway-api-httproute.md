@@ -1,4 +1,4 @@
-## Generate Gateway API HTTPRoute object
+## Generate Gateway API HTTPRoute object from OpenAPI 3
 
 The `kuadrantctl generate gatewayapi httproute` command generates an [Gateway API HTTPRoute](https://gateway-api.sigs.k8s.io/v1alpha2/guides/http-routing/)
 from your [OpenAPI Specification (OAS) 3.x](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md) and kubernetes service information.

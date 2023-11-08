@@ -4,7 +4,7 @@
 
 ```shell
 $ kuadrantctl uninstall -h
-The uninstall command removes kuadrant manifest bundle from the cluster.
+The uninstall command removes kuadrant from the cluster.
 
 Usage:
   kuadrantctl uninstall [flags]
