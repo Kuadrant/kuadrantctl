@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gatewayapiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 )
 
 var (
@@ -114,9 +115,9 @@ func generateGatewayAPIHTTPRoute(cmd *cobra.Command, doc *openapi3.T) (*gatewaya
 
 	//loop through gateway
 	// https://github.com/getkin/kin-openapi
-	gatewaysRef := []gatewayapiv1alpha2.ParentRef{}
+	gatewaysRef := []gatewayapiv1beta1.ParentReference{}
 	for _, gateway := range generateGatewayAPIHTTPRouteGateways {
-		gatewaysRef = append(gatewaysRef, gatewayapiv1alpha2.ParentRef{
+		gatewaysRef = append(gatewaysRef, gatewayapiv1beta1.ParentReference{
 			Name: gatewayapiv1alpha2.ObjectName(gateway),
 		})
 	}
@@ -134,7 +135,7 @@ func generateGatewayAPIHTTPRoute(cmd *cobra.Command, doc *openapi3.T) (*gatewaya
 			APIVersion: "gateway.networking.k8s.io/v1alpha2",
 		},
 		Spec: gatewayapiv1alpha2.HTTPRouteSpec{
-			CommonRouteSpec: gatewayapiv1alpha2.CommonRouteSpec{
+			CommonRouteSpec: gatewayapiv1beta1.CommonRouteSpec{
 				ParentRefs: gatewaysRef,
 			},
 			Hostnames: []gatewayapiv1alpha2.Hostname{

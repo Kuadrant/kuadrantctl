@@ -3,11 +3,12 @@ package gatewayapi
 import (
 	"github.com/getkin/kin-openapi/openapi3"
 	gatewayapiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 )
 
 func HTTPRouteMatchesFromOAS(doc *openapi3.T) ([]gatewayapiv1alpha2.HTTPRouteMatch, error) {
 	httpRouteMatches := []gatewayapiv1alpha2.HTTPRouteMatch{}
-	pathMatchExactPath := gatewayapiv1alpha2.PathMatchExact
+	pathMatchExactPath := gatewayapiv1beta1.PathMatchExact
 
 	for path, pathItem := range doc.Paths {
 
@@ -37,8 +38,8 @@ func HTTPRouteMatchesFromOAS(doc *openapi3.T) ([]gatewayapiv1alpha2.HTTPRouteMat
 }
 
 func addRuleMatcherFromParams(params openapi3.Parameters, headers []gatewayapiv1alpha2.HTTPHeaderMatch, queryParams []gatewayapiv1alpha2.HTTPQueryParamMatch) ([]gatewayapiv1alpha2.HTTPHeaderMatch, []gatewayapiv1alpha2.HTTPQueryParamMatch) {
-	headerMatchType := gatewayapiv1alpha2.HeaderMatchExact
-	queryParamMatchExact := gatewayapiv1alpha2.QueryParamMatchExact
+	headerMatchType := gatewayapiv1beta1.HeaderMatchExact
+	queryParamMatchExact := gatewayapiv1beta1.QueryParamMatchExact
 
 	for _, parameter := range params {
 		if !parameter.Value.Required {

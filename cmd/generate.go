@@ -11,7 +11,6 @@ func generateCommand() *cobra.Command {
 		Long:  "Commands related to kubernetes object generation",
 	}
 
-	cmd.AddCommand(generateIstioCommand())
 	cmd.AddCommand(generateKuadrantCommand())
 	cmd.AddCommand(generateGatewayAPICommand())
 

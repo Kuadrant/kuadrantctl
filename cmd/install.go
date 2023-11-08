@@ -3,26 +3,23 @@ package cmd
 import (
 	"context"
 	"flag"
+	"fmt"
 	"time"
 
+	operators "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes/scheme"
+
+	kuadrantoperator "github.com/kuadrant/kuadrant-operator/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/kuadrant/kuadrantctl/authorinomanifests"
-	"github.com/kuadrant/kuadrantctl/istiomanifests"
-	"github.com/kuadrant/kuadrantctl/kuadrantmanifests"
-	"github.com/kuadrant/kuadrantctl/limitadormanifests"
-	"github.com/kuadrant/kuadrantctl/pkg/authorino"
-	"github.com/kuadrant/kuadrantctl/pkg/limitador"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
 
@@ -30,6 +27,10 @@ var (
 	installKubeConfig string
 	// TODO(eastizle): namespace from command line param
 	installNamespace string = "kuadrant-system"
+)
+
+const (
+	KUADRANT_OPERATOR_VERSION string = "v0.4.1"
 )
 
 func installCommand() *cobra.Command {
@@ -72,22 +73,12 @@ func installRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	err = deployKuadrantOperator(k8sClient)
+	if err != nil {
+		return err
+	}
+
 	err = createNamespace(k8sClient)
-	if err != nil {
-		return err
-	}
-
-	err = deployIngressProvider(k8sClient)
-	if err != nil {
-		return err
-	}
-
-	err = deployAuthorizationProvider(k8sClient)
-	if err != nil {
-		return err
-	}
-
-	err = deployRateLimitProvider(k8sClient)
 	if err != nil {
 		return err
 	}
@@ -105,21 +96,13 @@ func installRun(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func createOnly(k8sClient client.Client) utils.DecodeCallback {
-	return func(obj runtime.Object) error {
-		return utils.CreateOnlyK8SObject(k8sClient, obj)
-	}
-}
-
 func waitForDeployments(k8sClient client.Client) error {
 	retryInterval := time.Second * 5
 	timeout := time.Minute * 2
 
 	deploymentKeys := []types.NamespacedName{
-		types.NamespacedName{Name: "kuadrant-gateway", Namespace: installNamespace},
 		types.NamespacedName{Name: "authorino", Namespace: installNamespace},
 		types.NamespacedName{Name: "limitador", Namespace: installNamespace},
-		types.NamespacedName{Name: "kuadrant-controller-manager", Namespace: installNamespace},
 	}
 
 	for _, key := range deploymentKeys {
@@ -135,19 +118,33 @@ func waitForDeployments(k8sClient client.Client) error {
 	return nil
 }
 
-func deployKuadrant(k8sClient client.Client) error {
-	kuadrantControllerVersion, err := utils.KuadrantControllerImage()
-	if err != nil {
-		return err
-	}
-	logf.Log.Info("Deploying kuadrant controller", "version", kuadrantControllerVersion)
+func deployKuadrantOperator(k8sClient client.Client) error {
+	logf.Log.Info("Deploying kuadrant operator", "version", KUADRANT_OPERATOR_VERSION)
 
-	data, err := kuadrantmanifests.Content()
-	if err != nil {
-		return err
+	//apiVersion: operators.coreos.com/v1alpha1
+	//kind: Subscription
+	//metadata:
+	//  name: my-kuadrant-operator
+	//  namespace: operators
+	//spec:
+	//  channel: stable
+	//  name: kuadrant-operator
+	//  source: operatorhubio-catalog
+	//  sourceNamespace: olm
+	//
+	subs := &operators.Subscription{
+		TypeMeta:   metav1.TypeMeta{APIVersion: "operators.coreos.com/v1alpha1", Kind: "Subscription"},
+		ObjectMeta: metav1.ObjectMeta{Name: "kuadrant-operator", Namespace: "operators"},
+		Spec: &operators.SubscriptionSpec{
+			Channel:                "stable",
+			Package:                "kuadrant-operator",
+			CatalogSource:          "operatorhubio-catalog",
+			CatalogSourceNamespace: "olm",
+			StartingCSV:            fmt.Sprintf("kuadrant-operator.%s", KUADRANT_OPERATOR_VERSION),
+		},
 	}
 
-	err = utils.DecodeFile(data, scheme.Scheme, createOnly(k8sClient))
+	err := utils.CreateOnlyK8SObject(k8sClient, subs)
 	if err != nil {
 		return err
 	}
@@ -155,52 +152,16 @@ func deployKuadrant(k8sClient client.Client) error {
 	return nil
 }
 
-func deployAuthorizationProvider(k8sClient client.Client) error {
-	authorinoOperatorVersion, err := utils.AuthorinoOperatorImage()
+func deployKuadrant(k8sClient client.Client) error {
+	kuadrant := &kuadrantoperator.Kuadrant{
+		TypeMeta:   metav1.TypeMeta{APIVersion: "kuadrant.io/v1beta1", Kind: "Kuadrant"},
+		ObjectMeta: metav1.ObjectMeta{Name: "kuadrant", Namespace: installNamespace},
+		Spec:       kuadrantoperator.KuadrantSpec{},
+	}
+
+	err := utils.CreateOnlyK8SObject(k8sClient, kuadrant)
 	if err != nil {
 		return err
-	}
-	logf.Log.Info("Deploying authorino operator", "version", authorinoOperatorVersion)
-
-	data, err := authorinomanifests.OperatorContent()
-	if err != nil {
-		return err
-	}
-
-	err = utils.DecodeFile(data, scheme.Scheme, createOnly(k8sClient))
-	if err != nil {
-		return err
-	}
-
-	authorinoObj := authorino.Authorino(installNamespace)
-	logf.Log.Info("Deploying authorino instance", "version", authorinoObj.Spec.Image)
-	return utils.CreateOnlyK8SObject(k8sClient, authorinoObj)
-}
-
-func deployIngressProvider(k8sClient client.Client) error {
-	istioVersion, err := utils.IstioImage()
-	if err != nil {
-		return err
-	}
-	logf.Log.Info("Deploying istio", "version", istioVersion)
-	manifests := []struct {
-		source func() ([]byte, error)
-	}{
-		{istiomanifests.BaseContent},
-		{istiomanifests.PilotContent},
-		{istiomanifests.IngressGatewayContent},
-		{istiomanifests.DefaultGatewayContent},
-	}
-
-	for _, manifest := range manifests {
-		data, err := manifest.source()
-		if err != nil {
-			return err
-		}
-		err = utils.DecodeFile(data, scheme.Scheme, createOnly(k8sClient))
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -226,25 +187,4 @@ func createNamespace(k8sClient client.Client) error {
 		}
 		return true, err
 	})
-}
-
-func deployRateLimitProvider(k8sClient client.Client) error {
-	limitadorOperatorVersion, err := utils.LimitadorOperatorImage()
-	if err != nil {
-		return err
-	}
-	logf.Log.Info("Deploying limitador operator", "version", limitadorOperatorVersion)
-
-	data, err := limitadormanifests.OperatorContent()
-	if err != nil {
-		return err
-	}
-	err = utils.DecodeFile(data, scheme.Scheme, createOnly(k8sClient))
-	if err != nil {
-		return err
-	}
-
-	limitadorObj := limitador.Limitador(installNamespace)
-	logf.Log.Info("Deploying limitador instance", "version", *limitadorObj.Spec.Version)
-	return utils.CreateOnlyK8SObject(k8sClient, limitadorObj)
 }

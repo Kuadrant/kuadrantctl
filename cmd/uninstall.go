@@ -2,23 +2,15 @@ package cmd
 
 import (
 	"flag"
-	"reflect"
 
 	"github.com/spf13/cobra"
-	corev1 "k8s.io/api/core/v1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/kuadrant/kuadrantctl/authorinomanifests"
-	"github.com/kuadrant/kuadrantctl/istiomanifests"
-	"github.com/kuadrant/kuadrantctl/kuadrantmanifests"
-	"github.com/kuadrant/kuadrantctl/limitadormanifests"
-	"github.com/kuadrant/kuadrantctl/pkg/authorino"
-	"github.com/kuadrant/kuadrantctl/pkg/limitador"
+	kuadrantoperator "github.com/kuadrant/kuadrant-operator/api/v1beta1"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
 
@@ -68,106 +60,21 @@ func unInstallRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = unDeployAuthorizationProvider(k8sClient)
-	if err != nil {
-		return err
-	}
-
-	err = unDeployIngressProvider(k8sClient)
-	if err != nil {
-		return err
-	}
-
-	err = unDeployRateLimitProvider(k8sClient)
-	if err != nil {
-		return err
-	}
-
-	logf.Log.Info("kuadrant successfully removed")
+	logf.Log.Info("kuadrant successfully uninstalled")
 
 	return nil
 }
 
 func unDeployKuadrant(k8sClient client.Client) error {
-	data, err := kuadrantmanifests.Content()
-	if err != nil {
-		return err
+	kuadrant := &kuadrantoperator.Kuadrant{
+		TypeMeta:   metav1.TypeMeta{APIVersion: "kuadrant.io/v1beta1", Kind: "Kuadrant"},
+		ObjectMeta: metav1.ObjectMeta{Name: "kuadrant", Namespace: installNamespace},
 	}
 
-	if err = utils.DecodeFile(data, scheme.Scheme, delete(k8sClient)); err != nil {
-		return err
-	}
-	return nil
-}
-
-func unDeployAuthorizationProvider(k8sClient client.Client) error {
-	err := utils.DeleteK8SObject(k8sClient, authorino.Authorino(installNamespace))
-	if err != nil {
-		return err
-	}
-
-	data, err := authorinomanifests.OperatorContent()
-	if err != nil {
-		return err
-	}
-	err = utils.DecodeFile(data, scheme.Scheme, delete(k8sClient))
+	err := utils.DeleteK8SObject(k8sClient, kuadrant)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func unDeployIngressProvider(k8sClient client.Client) error {
-	manifests := []struct {
-		source func() ([]byte, error)
-	}{
-		{istiomanifests.BaseContent},
-		{istiomanifests.PilotContent},
-		{istiomanifests.IngressGatewayContent},
-		{istiomanifests.DefaultGatewayContent},
-	}
-
-	for _, manifest := range manifests {
-		data, err := manifest.source()
-		if err != nil {
-			return err
-		}
-		err = utils.DecodeFile(data, scheme.Scheme, delete(k8sClient))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func unDeployRateLimitProvider(k8sClient client.Client) error {
-	err := utils.DeleteK8SObject(k8sClient, limitador.Limitador(installNamespace))
-	if err != nil {
-		return err
-	}
-
-	data, err := limitadormanifests.OperatorContent()
-	if err != nil {
-		return err
-	}
-	err = utils.DecodeFile(data, scheme.Scheme, delete(k8sClient))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func delete(k8sClient client.Client) utils.DecodeCallback {
-	return func(obj runtime.Object) error {
-		if (obj.GetObjectKind().GroupVersionKind().GroupVersion() == corev1.SchemeGroupVersion && obj.GetObjectKind().GroupVersionKind().Kind == reflect.TypeOf(corev1.Namespace{}).Name()) ||
-			obj.GetObjectKind().GroupVersionKind().Group == apiextensionsv1.GroupName {
-			// Omit Namespace and CRD's deletion inside the manifest data
-			return nil
-		}
-
-		return utils.DeleteK8SObject(k8sClient, obj)
-	}
 }
