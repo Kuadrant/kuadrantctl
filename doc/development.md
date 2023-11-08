@@ -10,13 +10,7 @@
 $ git clone https://github.com/kuadrant/kuadrantctl.git
 $ cd kuadrantctl && make install
 $ bin/kuadrantctl version
-{"level":"info","ts":1699437585.7809818,"msg":"kuadrantctl version: latest"}
-{"level":"info","ts":1699437585.7941456,"msg":"Istio version: docker.io/istio/pilot:1.12.1"}
-{"level":"info","ts":1699437585.798138,"msg":"Authorino operator version: quay.io/3scale/authorino-operator:latest"}
-{"level":"info","ts":1699437585.798147,"msg":"Authorino version: quay.io/3scale/authorino:v0.7.0"}
-{"level":"info","ts":1699437585.7990465,"msg":"Limitador operator version: quay.io/kuadrant/limitador-operator:main"}
-{"level":"info","ts":1699437585.799057,"msg":"Limitador version: 0.4.0"}
-{"level":"info","ts":1699437585.8007147,"msg":"Kuadrant controller version: quay.io/kuadrant/kuadrant-controller:main"}
+{"level":"info","ts":"2023-11-08T23:44:57+01:00","msg":"kuadrantctl version: latest"}
 ```
 
 ## Quick steps to contribute
