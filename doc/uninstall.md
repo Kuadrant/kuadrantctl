@@ -1,4 +1,4 @@
-## Install Kuadrant
+## Uninstall Kuadrant
 
 ### Usage :
 
