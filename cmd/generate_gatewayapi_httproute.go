@@ -9,7 +9,6 @@ import (
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	gatewayapiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 )
 
@@ -111,43 +110,43 @@ func generateGatewayApiHttpRoute(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func generateGatewayAPIHTTPRoute(cmd *cobra.Command, doc *openapi3.T) (*gatewayapiv1alpha2.HTTPRoute, error) {
+func generateGatewayAPIHTTPRoute(cmd *cobra.Command, doc *openapi3.T) (*gatewayapiv1beta1.HTTPRoute, error) {
 
 	//loop through gateway
 	// https://github.com/getkin/kin-openapi
 	gatewaysRef := []gatewayapiv1beta1.ParentReference{}
 	for _, gateway := range generateGatewayAPIHTTPRouteGateways {
 		gatewaysRef = append(gatewaysRef, gatewayapiv1beta1.ParentReference{
-			Name: gatewayapiv1alpha2.ObjectName(gateway),
+			Name: gatewayapiv1beta1.ObjectName(gateway),
 		})
 	}
 
-	port := gatewayapiv1alpha2.PortNumber(generateGatewayAPIHTTPRouteSvcPort)
+	port := gatewayapiv1beta1.PortNumber(generateGatewayAPIHTTPRouteSvcPort)
 	service := fmt.Sprintf("%s.%s.svc", generateGatewayAPIHTTPRouteSvcName, generateGatewayAPIHTTPRouteSvcNamespace)
 	matches, err := gatewayapi.HTTPRouteMatchesFromOAS(doc)
 	if err != nil {
 		return nil, err
 	}
 
-	httpRoute := gatewayapiv1alpha2.HTTPRoute{
+	httpRoute := gatewayapiv1beta1.HTTPRoute{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "HTTPRoute",
-			APIVersion: "gateway.networking.k8s.io/v1alpha2",
+			APIVersion: "gateway.networking.k8s.io/v1beta1",
 		},
-		Spec: gatewayapiv1alpha2.HTTPRouteSpec{
+		Spec: gatewayapiv1beta1.HTTPRouteSpec{
 			CommonRouteSpec: gatewayapiv1beta1.CommonRouteSpec{
 				ParentRefs: gatewaysRef,
 			},
-			Hostnames: []gatewayapiv1alpha2.Hostname{
-				gatewayapiv1alpha2.Hostname(generateGatewayAPIHTTPRouteHost),
+			Hostnames: []gatewayapiv1beta1.Hostname{
+				gatewayapiv1beta1.Hostname(generateGatewayAPIHTTPRouteHost),
 			},
-			Rules: []gatewayapiv1alpha2.HTTPRouteRule{
+			Rules: []gatewayapiv1beta1.HTTPRouteRule{
 				{
-					BackendRefs: []gatewayapiv1alpha2.HTTPBackendRef{
+					BackendRefs: []gatewayapiv1beta1.HTTPBackendRef{
 						{
-							BackendRef: gatewayapiv1alpha2.BackendRef{
-								BackendObjectReference: gatewayapiv1alpha2.BackendObjectReference{
-									Name: gatewayapiv1alpha2.ObjectName(service),
+							BackendRef: gatewayapiv1beta1.BackendRef{
+								BackendObjectReference: gatewayapiv1beta1.BackendObjectReference{
+									Name: gatewayapiv1beta1.ObjectName(service),
 									Port: &port,
 								},
 							},
