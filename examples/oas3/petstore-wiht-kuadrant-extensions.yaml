@@ -21,6 +21,13 @@ paths:
       backendRefs:
         - name: petstore
           namespace: petstore
+      rate_limit:
+        rates:
+          - limit: 1
+            duration: 10
+            unit: second
+        counters:
+          - auth.identity.username
     get:
       operationId: "getCat"
       responses:
@@ -32,6 +39,13 @@ paths:
         backendRefs:
           - name: petstore
             namespace: petstore
+        rate_limit:
+          rates:
+            - limit: 2
+              duration: 10
+              unit: second
+          counters:
+            - auth.identity.username
       operationId: "postCat"
       responses:
         405:
@@ -43,7 +57,20 @@ paths:
         backendRefs:
           - name: petstore
             namespace: petstore
+        rate_limit:
+          rates:
+            - limit: 3
+              duration: 10
+              unit: second
+          counters:
+            - auth.identity.username
       operationId: "getDog"
+      responses:
+        405:
+          description: "invalid input"
+  /mouse:
+    get:
+      operationId: "getMouse"
       responses:
         405:
           description: "invalid input"

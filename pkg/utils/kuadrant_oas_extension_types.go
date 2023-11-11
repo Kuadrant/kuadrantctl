@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
 	"k8s.io/utils/ptr"
 	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 )
@@ -38,9 +39,18 @@ func NewKuadrantOASInfoExtension(info *openapi3.Info) (*KuadrantOASInfoExtension
 	return x.Kuadrant, nil
 }
 
+type KuadrantRateLimitExtension struct {
+	When []kuadrantapiv1beta2.WhenCondition `json:"when,omitempty"`
+
+	Counters []kuadrantapiv1beta2.ContextSelector `json:"counters,omitempty"`
+
+	Rates []kuadrantapiv1beta2.Rate `json:"rates,omitempty"`
+}
+
 type KuadrantOASPathExtension struct {
 	Enable      *bool                              `json:"enable,omitempty"`
 	BackendRefs []gatewayapiv1beta1.HTTPBackendRef `json:"backendRefs,omitempty"`
+	RateLimit   *KuadrantRateLimitExtension        `json:"rate_limit,omitempty"`
 }
 
 func (k *KuadrantOASPathExtension) IsEnabled() bool {
