@@ -5,6 +5,8 @@ from your [OpenAPI Specification (OAS) 3.x](https://github.com/OAI/OpenAPI-Speci
 
 ### OpenAPI specification
 
+[OpenAPI `v3.0`](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md)
+
 OpenAPI document resource can be provided by one of the following channels:
 * Filename in the available path.
 * URL format (supported schemes are HTTP and HTTPS). The CLI will try to download from the given address.
@@ -13,8 +15,9 @@ OpenAPI document resource can be provided by one of the following channels:
 ### Usage :
 
 ```shell
+// TODO
 $ kuadrantctl generate gatewayapi httproute -h
-Generate Gateway API HTTPRoute from OpenAPI 3.x
+Generate Gateway API HTTPRoute from OpenAPI 3.0.X
 
 Usage:
   kuadrantctl generate gatewayapi httproute [flags]
@@ -32,4 +35,4 @@ Global Flags:
   -v, --verbose   verbose output
 ```
 
-> Under the example folder there are examples of OAS 3 that can be used to generate the resources 
+> Under the example folder there are examples of OAS 3 that can be used to generate the resources

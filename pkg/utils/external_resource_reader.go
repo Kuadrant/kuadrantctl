@@ -21,11 +21,11 @@ import (
 )
 
 // ReadExternalResource reads data streams from external resources. Currently implemented:
-// - '-' for STDIN
+// - '@' for STDIN
 // - URLs (HTTP[S])
 // - Files
 func ReadExternalResource(resource string) ([]byte, error) {
-	if resource == "-" {
+	if resource == "@" {
 		return ioutil.ReadAll(os.Stdin)
 	}
 

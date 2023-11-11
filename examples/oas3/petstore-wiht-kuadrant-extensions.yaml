@@ -1,0 +1,49 @@
+---
+openapi: "3.0.3"
+info:
+  title: "Pet Store API"
+  version: "1.0.0"
+  x-kuadrant:
+    route:
+      name: "petstore"
+      namespace: "petstore"
+      hostnames:
+        - example.com
+      parentRefs:
+        - name: apiGateway
+          namespace: gateways
+servers:
+  - url: https://example.io/v1
+paths:
+  /cat:
+    x-kuadrant:
+      enable: true
+      backendRefs:
+        - name: petstore
+          namespace: petstore
+    get:
+      operationId: "getCat"
+      responses:
+        405:
+          description: "invalid input"
+    post:
+      x-kuadrant:
+        enable: false
+        backendRefs:
+          - name: petstore
+            namespace: petstore
+      operationId: "postCat"
+      responses:
+        405:
+          description: "invalid input"
+  /dog:
+    get:
+      x-kuadrant:
+        enable: true
+        backendRefs:
+          - name: petstore
+            namespace: petstore
+      operationId: "getDog"
+      responses:
+        405:
+          description: "invalid input"

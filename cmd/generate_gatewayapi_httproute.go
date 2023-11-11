@@ -13,65 +13,22 @@ import (
 )
 
 var (
-	generateGatewayAPIHTTPRouteOAS          string
-	generateGatewayAPIHTTPRouteHost         string
-	generateGatewayAPIHTTPRouteSvcName      string
-	generateGatewayAPIHTTPRouteSvcNamespace string
-	generateGatewayAPIHTTPRouteSvcPort      int32
-	generateGatewayAPIHTTPRouteGateways     []string
+	generateGatewayAPIHTTPRouteOAS string
 )
 
-//kuadrantctl generate istio virtualservice --namespace myns --oas petstore.yaml --public-host www.kuadrant.io --service-name myservice --gateway kuadrant-gateway
-// --namespace myns
-// --service-name myservice
-// --public-host www.kuadrant.io
-// --gateway kuadrant-gateway
-// -- service-port 80
+//kuadrantctl generate gatewayapi httproute --oas [OAS_FILE_PATH | OAS_URL | @]
 
 func generateGatewayApiHttpRouteCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "httproute",
-		Short: "Generate Gateway API HTTPRoute from OpenAPI 3.x",
-		Long:  "Generate Gateway API HTTPRoute from OpenAPI 3.x",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return generateGatewayApiHttpRoute(cmd, args)
-		},
+		Short: "Generate Gateway API HTTPRoute from OpenAPI 3.0.X",
+		Long:  "Generate Gateway API HTTPRoute from OpenAPI 3.0.X",
+		RunE:  runGenerateGatewayApiHttpRoute,
 	}
 
 	// OpenAPI ref
-	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "/path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR - (required)")
+	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "/path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR @ (required)")
 	err := cmd.MarkFlagRequired("oas")
-	if err != nil {
-		panic(err)
-	}
-
-	// service ref
-	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteSvcName, "service-name", "", "Service name (required)")
-	err = cmd.MarkFlagRequired("service-name")
-	if err != nil {
-		panic(err)
-	}
-
-	// service namespace
-	cmd.Flags().StringVarP(&generateGatewayAPIHTTPRouteSvcNamespace, "namespace", "n", "", "Service namespace (required)")
-	err = cmd.MarkFlagRequired("namespace")
-	if err != nil {
-		panic(err)
-	}
-
-	// service host
-	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteHost, "public-host", "", "Public host (required)")
-	err = cmd.MarkFlagRequired("public-host")
-	if err != nil {
-		panic(err)
-	}
-
-	// service port
-	cmd.Flags().Int32VarP(&generateGatewayAPIHTTPRouteSvcPort, "port", "p", 80, "Service Port (required)")
-
-	// gateway
-	cmd.Flags().StringSliceVar(&generateGatewayAPIHTTPRouteGateways, "gateway", []string{}, "Gateways (required)")
-	err = cmd.MarkFlagRequired("gateway")
 	if err != nil {
 		panic(err)
 	}
@@ -79,7 +36,7 @@ func generateGatewayApiHttpRouteCommand() *cobra.Command {
 	return cmd
 }
 
-func generateGatewayApiHttpRoute(cmd *cobra.Command, args []string) error {
+func runGenerateGatewayApiHttpRoute(cmd *cobra.Command, args []string) error {
 	oasDataRaw, err := utils.ReadExternalResource(generateGatewayAPIHTTPRouteOAS)
 	if err != nil {
 		return err
@@ -96,10 +53,7 @@ func generateGatewayApiHttpRoute(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("OpenAPI validation error: %w", err)
 	}
 
-	httpRoute, err := generateGatewayAPIHTTPRoute(cmd, doc)
-	if err != nil {
-		return err
-	}
+	httpRoute := buildHTTPRoute(doc)
 
 	jsonData, err := json.Marshal(httpRoute)
 	if err != nil {
@@ -110,52 +64,19 @@ func generateGatewayApiHttpRoute(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func generateGatewayAPIHTTPRoute(cmd *cobra.Command, doc *openapi3.T) (*gatewayapiv1beta1.HTTPRoute, error) {
-
-	//loop through gateway
-	// https://github.com/getkin/kin-openapi
-	gatewaysRef := []gatewayapiv1beta1.ParentReference{}
-	for _, gateway := range generateGatewayAPIHTTPRouteGateways {
-		gatewaysRef = append(gatewaysRef, gatewayapiv1beta1.ParentReference{
-			Name: gatewayapiv1beta1.ObjectName(gateway),
-		})
-	}
-
-	port := gatewayapiv1beta1.PortNumber(generateGatewayAPIHTTPRouteSvcPort)
-	service := fmt.Sprintf("%s.%s.svc", generateGatewayAPIHTTPRouteSvcName, generateGatewayAPIHTTPRouteSvcNamespace)
-	matches, err := gatewayapi.HTTPRouteMatchesFromOAS(doc)
-	if err != nil {
-		return nil, err
-	}
-
-	httpRoute := gatewayapiv1beta1.HTTPRoute{
+func buildHTTPRoute(doc *openapi3.T) *gatewayapiv1beta1.HTTPRoute {
+	return &gatewayapiv1beta1.HTTPRoute{
 		TypeMeta: v1.TypeMeta{
-			Kind:       "HTTPRoute",
 			APIVersion: "gateway.networking.k8s.io/v1beta1",
+			Kind:       "HTTPRoute",
 		},
+		ObjectMeta: gatewayapi.HTTPRouteObjectMetaFromOAS(doc),
 		Spec: gatewayapiv1beta1.HTTPRouteSpec{
 			CommonRouteSpec: gatewayapiv1beta1.CommonRouteSpec{
-				ParentRefs: gatewaysRef,
+				ParentRefs: gatewayapi.HTTPRouteGatewayParentRefsFromOAS(doc),
 			},
-			Hostnames: []gatewayapiv1beta1.Hostname{
-				gatewayapiv1beta1.Hostname(generateGatewayAPIHTTPRouteHost),
-			},
-			Rules: []gatewayapiv1beta1.HTTPRouteRule{
-				{
-					BackendRefs: []gatewayapiv1beta1.HTTPBackendRef{
-						{
-							BackendRef: gatewayapiv1beta1.BackendRef{
-								BackendObjectReference: gatewayapiv1beta1.BackendObjectReference{
-									Name: gatewayapiv1beta1.ObjectName(service),
-									Port: &port,
-								},
-							},
-						},
-					},
-					Matches: matches,
-				},
-			},
+			Hostnames: gatewayapi.HTTPRouteHostnamesFromOAS(doc),
+			Rules:     gatewayapi.HTTPRouteRulesFromOAS(doc),
 		},
 	}
-	return &httpRoute, nil
 }
