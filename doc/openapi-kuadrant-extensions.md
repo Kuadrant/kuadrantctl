@@ -30,6 +30,7 @@ paths:
       enable: true  ## Add to the HTTPRoute. Optional. Default: false
       backendRefs:  ## Backend references to be included in the HTTPRoute. []gateway.networking.k8s.io/v1beta1.HTTPBackendRef. Optional.
         - name: petstore
+          port: 80
           namespace: petstore
       rate_limit:  ## Rate limit config. Optional.
         rates:   ## Kuadrant API []github.com/kuadrant/kuadrant-operator/api/v1beta2.Rate
@@ -57,6 +58,7 @@ paths:
         enable: true  ## Add to the HTTPRoute. Optional. Default: false
         backendRefs:  ## Backend references to be included in the HTTPRoute. Optional.
           - name: petstore
+            port: 80
             namespace: petstore
         rate_limit:  ## Rate limit config. Optional.
           rates:   ## Kuadrant API github.com/kuadrant/kuadrant-operator/api/v1beta2.Rate
