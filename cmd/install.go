@@ -150,7 +150,7 @@ func deployKuadrantOperator(k8sClient client.Client) error {
 	// Wait for the install process to be completed
 	immediate := true
 	logf.Log.Info("Waiting for the kuadrant operator installation")
-	err = wait.PollUntilContextTimeout(context.Background(), time.Second*2, time.Second*20, immediate, func(ctx context.Context) (bool, error) {
+	err = wait.PollUntilContextTimeout(context.Background(), time.Second*5, time.Minute*2, immediate, func(ctx context.Context) (bool, error) {
 		existingSubs := &operators.Subscription{}
 		err := k8sClient.Get(ctx, client.ObjectKeyFromObject(subs), existingSubs)
 		if err != nil {

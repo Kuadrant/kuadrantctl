@@ -53,6 +53,7 @@ env-setup:
 	$(MAKE) olm-install
 	$(MAKE) gateway-api-install
 	$(MAKE) istio-install
+	$(MAKE) deploy-gateway
 
 ## local-setup: Sets up Kind cluster with GatewayAPI manifests and istio GW, nothing Kuadrant. Build and install kuadrantctl binary
 .PHONY: local-setup

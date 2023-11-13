@@ -10,8 +10,8 @@ info:
       hostnames:
         - example.com
       parentRefs:
-        - name: apiGateway
-          namespace: gateways
+        - name: istio-ingressgateway
+          namespace: istio-system
 servers:
   - url: https://example.io/v1
 paths:
@@ -20,6 +20,7 @@ paths:
       enable: true
       backendRefs:
         - name: petstore
+          port: 80
           namespace: petstore
       rate_limit:
         rates:
@@ -27,7 +28,7 @@ paths:
             duration: 10
             unit: second
         counters:
-          - auth.identity.username
+          - request.headers.x-forwarded-for
     get:  # Added to the route and rate limited
       operationId: "getCat"
       responses:
@@ -38,6 +39,7 @@ paths:
         enable: false
         backendRefs:
           - name: petstore
+            port: 80
             namespace: petstore
         rate_limit:
           rates:
@@ -45,7 +47,7 @@ paths:
               duration: 10
               unit: second
           counters:
-            - auth.identity.username
+            - request.headers.x-forwarded-for
       operationId: "postCat"
       responses:
         405:
@@ -56,6 +58,7 @@ paths:
         enable: true
         backendRefs:
           - name: petstore
+            port: 80
             namespace: petstore
         rate_limit:
           rates:
@@ -63,7 +66,7 @@ paths:
               duration: 10
               unit: second
           counters:
-            - auth.identity.username
+            - request.headers.x-forwarded-for
       operationId: "getDog"
       responses:
         405:
@@ -73,6 +76,7 @@ paths:
         enable: true
         backendRefs:
           - name: petstore
+            port: 80
             namespace: petstore
       operationId: "postDog"
       responses:
