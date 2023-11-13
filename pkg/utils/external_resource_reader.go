@@ -16,7 +16,7 @@ limitations under the License.
 package utils
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 )
 
@@ -26,7 +26,7 @@ import (
 // - Files
 func ReadExternalResource(resource string) ([]byte, error) {
 	if resource == "@" {
-		return ioutil.ReadAll(os.Stdin)
+		return io.ReadAll(os.Stdin)
 	}
 
 	if url, isURL := ParseURL(resource); isURL {
@@ -34,5 +34,5 @@ func ReadExternalResource(resource string) ([]byte, error) {
 	}
 
 	// Defaulting to filepath
-	return ioutil.ReadFile(resource)
+	return os.ReadFile(resource)
 }

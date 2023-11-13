@@ -16,7 +16,7 @@ limitations under the License.
 package utils
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 )
@@ -32,7 +32,7 @@ func ReadURL(location *url.URL) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	defer resp.Body.Close()
 	if err != nil {
 		return nil, err

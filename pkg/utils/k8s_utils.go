@@ -123,9 +123,9 @@ func IsDeploymentAvailable(dc *appsv1.Deployment) bool {
 	return false
 }
 
-func CheckDeploymentAvailable(k8sClient client.Client, key types.NamespacedName) (bool, error) {
+func CheckDeploymentAvailable(ctx context.Context, k8sClient client.Client, key types.NamespacedName) (bool, error) {
 	existingDeployment := &appsv1.Deployment{}
-	err := k8sClient.Get(context.Background(), key, existingDeployment)
+	err := k8sClient.Get(ctx, key, existingDeployment)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logf.Log.Info("Deployment not available", "name", key.Name)

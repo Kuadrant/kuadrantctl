@@ -101,8 +101,9 @@ func waitForDeployments(k8sClient client.Client) error {
 	}
 
 	for _, key := range deploymentKeys {
-		err := wait.Poll(retryInterval, timeout, func() (bool, error) {
-			return utils.CheckDeploymentAvailable(k8sClient, key)
+		immediate := true
+		err := wait.PollUntilContextTimeout(context.Background(), retryInterval, timeout, immediate, func(ctx context.Context) (bool, error) {
+			return utils.CheckDeploymentAvailable(ctx, k8sClient, key)
 		})
 
 		if err != nil {
@@ -147,10 +148,11 @@ func deployKuadrantOperator(k8sClient client.Client) error {
 	var installPlanKey client.ObjectKey
 
 	// Wait for the install process to be completed
+	immediate := true
 	logf.Log.Info("Waiting for the kuadrant operator installation")
-	err = wait.Poll(time.Second*2, time.Second*20, func() (bool, error) {
+	err = wait.PollUntilContextTimeout(context.Background(), time.Second*2, time.Second*20, immediate, func(ctx context.Context) (bool, error) {
 		existingSubs := &operators.Subscription{}
-		err := k8sClient.Get(context.Background(), client.ObjectKeyFromObject(subs), existingSubs)
+		err := k8sClient.Get(ctx, client.ObjectKeyFromObject(subs), existingSubs)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				logf.Log.Info("Subscription not available", "name", client.ObjectKeyFromObject(subs))
@@ -176,9 +178,9 @@ func deployKuadrantOperator(k8sClient client.Client) error {
 	}
 
 	logf.Log.Info("Waiting for the install plan", "name", installPlanKey)
-	err = wait.Poll(time.Second*5, time.Minute*2, func() (bool, error) {
+	err = wait.PollUntilContextTimeout(context.Background(), time.Second*5, time.Minute*2, immediate, func(ctx context.Context) (bool, error) {
 		ip := &operators.InstallPlan{}
-		err := k8sClient.Get(context.Background(), installPlanKey, ip)
+		err := k8sClient.Get(ctx, installPlanKey, ip)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				logf.Log.Info("Install plan not available", "name", installPlanKey)
@@ -230,8 +232,9 @@ func createNamespace(k8sClient client.Client) error {
 
 	retryInterval := time.Second * 2
 	timeout := time.Second * 20
-	return wait.Poll(retryInterval, timeout, func() (bool, error) {
-		err := k8sClient.Get(context.Background(), types.NamespacedName{Name: installNamespace}, &corev1.Namespace{})
+	immediate := true
+	return wait.PollUntilContextTimeout(context.Background(), retryInterval, timeout, immediate, func(ctx context.Context) (bool, error) {
+		err := k8sClient.Get(ctx, types.NamespacedName{Name: installNamespace}, &corev1.Namespace{})
 		if err != nil && apierrors.IsNotFound(err) {
 			return false, nil
 		}
