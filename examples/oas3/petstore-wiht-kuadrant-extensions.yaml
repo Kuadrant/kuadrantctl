@@ -16,7 +16,7 @@ servers:
   - url: https://example.io/v1
 paths:
   /cat:
-    x-kuadrant:
+    x-kuadrant:  ## Path level Kuadrant Extension
       enable: true
       backendRefs:
         - name: petstore
@@ -28,13 +28,13 @@ paths:
             unit: second
         counters:
           - auth.identity.username
-    get:
+    get:  # Added to the route and rate limited
       operationId: "getCat"
       responses:
         405:
           description: "invalid input"
-    post:
-      x-kuadrant:
+    post:  # NOT added to the route
+      x-kuadrant:  ## Operation level Kuadrant Extension
         enable: false
         backendRefs:
           - name: petstore
@@ -51,8 +51,8 @@ paths:
         405:
           description: "invalid input"
   /dog:
-    get:
-      x-kuadrant:
+    get:  # Added to the route and rate limited
+      x-kuadrant:  ## Operation level Kuadrant Extension
         enable: true
         backendRefs:
           - name: petstore
@@ -68,8 +68,18 @@ paths:
       responses:
         405:
           description: "invalid input"
+    post:  # Added to the route and NOT rate limited
+      x-kuadrant:  ## Operation level Kuadrant Extension
+        enable: true
+        backendRefs:
+          - name: petstore
+            namespace: petstore
+      operationId: "postDog"
+      responses:
+        405:
+          description: "invalid input"
   /mouse:
-    get:
+    get:  # NOT added to the route
       operationId: "getMouse"
       responses:
         405:
