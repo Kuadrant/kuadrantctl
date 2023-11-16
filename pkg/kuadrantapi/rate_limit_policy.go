@@ -21,6 +21,11 @@ func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2
 
 	limits := make(map[string]kuadrantapiv1beta2.Limit)
 
+	basePath, err := utils.BasePathFromOpenAPI(doc)
+	if err != nil {
+		panic(err)
+	}
+
 	// Paths
 	for path, pathItem := range doc.Paths {
 		kuadrantPathExtension, err := utils.NewKuadrantOASPathExtension(pathItem)
@@ -57,7 +62,12 @@ func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2
 
 			limitName := utils.OpenAPIOperationName(path, verb, operation)
 
-			limits[limitName] = buildRateLimitPolicyLimit(path, pathItem, verb, operation, rateLimit)
+			limits[limitName] = kuadrantapiv1beta2.Limit{
+				RouteSelectors: buildLimitRouteSelectors(basePath, path, pathItem, verb, operation),
+				When:           rateLimit.When,
+				Counters:       rateLimit.Counters,
+				Rates:          rateLimit.Rates,
+			}
 		}
 	}
 
@@ -68,17 +78,8 @@ func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2
 	return limits
 }
 
-func buildRateLimitPolicyLimit(path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, rateLimit *utils.KuadrantRateLimitExtension) kuadrantapiv1beta2.Limit {
-	return kuadrantapiv1beta2.Limit{
-		RouteSelectors: buildLimitRouteSelectors(path, pathItem, verb, op),
-		When:           rateLimit.When,
-		Counters:       rateLimit.Counters,
-		Rates:          rateLimit.Rates,
-	}
-}
-
-func buildLimitRouteSelectors(path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation) []kuadrantapiv1beta2.RouteSelector {
-	match := utils.OpenAPIMatcherFromOASOperations(path, pathItem, verb, op)
+func buildLimitRouteSelectors(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation) []kuadrantapiv1beta2.RouteSelector {
+	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op)
 
 	return []kuadrantapiv1beta2.RouteSelector{
 		{

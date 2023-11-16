@@ -13,7 +13,7 @@ info:
         - name: istio-ingressgateway
           namespace: istio-system
 servers:
-  - url: https://example.io/v1
+  - url: https://example.io/api/v1
 paths:
   /cat:
     x-kuadrant:  ## Path level Kuadrant Extension
