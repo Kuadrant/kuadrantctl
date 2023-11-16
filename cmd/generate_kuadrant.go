@@ -12,6 +12,7 @@ func generateKuadrantCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(generateKuadrantRateLimitPolicyCommand())
+	cmd.AddCommand(generateKuadrantAuthPolicyCommand())
 
 	return cmd
 }
