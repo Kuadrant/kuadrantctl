@@ -92,7 +92,7 @@ func AuthPolicyAuthenticationSchemeFromOAS(doc *openapi3.T) map[string]kuadranta
 
 func findOIDCSecuritySchemesFromRequirements(doc *openapi3.T, secRequirements openapi3.SecurityRequirements) *openapi3.SecurityScheme {
 	for _, secReq := range secRequirements {
-		for secReqItemName, _ := range secReq {
+		for secReqItemName := range secReq {
 			secScheme, ok := doc.Components.SecuritySchemes[secReqItemName]
 			if !ok {
 				// should never happen. OpenAPI validation should detect this issue
