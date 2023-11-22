@@ -1,6 +1,8 @@
 package gatewayapi
 
 import (
+	"fmt"
+
 	"github.com/getkin/kin-openapi/openapi3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
@@ -111,6 +113,28 @@ func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
 	}
 
 	return rules
+}
+
+func ExtractLabelsFromOAS(doc *openapi3.T) (map[string]string, bool) {
+	if doc.Info == nil || doc.Info.Extensions == nil {
+		return nil, false
+	}
+
+	if extension, ok := doc.Info.Extensions["x-kuadrant"]; ok {
+		if extensionMap, ok := extension.(map[string]interface{}); ok {
+			if route, ok := extensionMap["route"].(map[string]interface{}); ok {
+				if labelsInterface, ok := route["labels"]; ok {
+					labels := make(map[string]string)
+					for key, value := range labelsInterface.(map[string]interface{}) {
+						labels[key] = fmt.Sprint(value)
+					}
+					return labels, true
+				}
+			}
+		}
+	}
+
+	return nil, false
 }
 
 func buildHTTPRouteRule(path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, backendRefs []gatewayapiv1beta1.HTTPBackendRef) gatewayapiv1beta1.HTTPRouteRule {
