@@ -77,6 +77,11 @@ func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
 	// TODO(eguzki): consider about grouping operations as HTTPRouteMatch objects in fewer HTTPRouteRule objects
 	rules := make([]gatewayapiv1beta1.HTTPRouteRule, 0)
 
+	basePath, err := utils.BasePathFromOpenAPI(doc)
+	if err != nil {
+		panic(err)
+	}
+
 	// Paths
 	for path, pathItem := range doc.Paths {
 		kuadrantPathExtension, err := utils.NewKuadrantOASPathExtension(pathItem)
@@ -104,7 +109,7 @@ func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
 				backendRefs = kuadrantOperationExtension.BackendRefs
 			}
 
-			rules = append(rules, buildHTTPRouteRule(path, pathItem, verb, operation, backendRefs))
+			rules = append(rules, buildHTTPRouteRule(basePath, path, pathItem, verb, operation, backendRefs))
 		}
 	}
 
@@ -137,8 +142,8 @@ func ExtractLabelsFromOAS(doc *openapi3.T) (map[string]string, bool) {
 	return nil, false
 }
 
-func buildHTTPRouteRule(path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, backendRefs []gatewayapiv1beta1.HTTPBackendRef) gatewayapiv1beta1.HTTPRouteRule {
-	match := utils.OpenAPIMatcherFromOASOperations(path, pathItem, verb, op)
+func buildHTTPRouteRule(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, backendRefs []gatewayapiv1beta1.HTTPBackendRef) gatewayapiv1beta1.HTTPRouteRule {
+	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op)
 
 	return gatewayapiv1beta1.HTTPRouteRule{
 		BackendRefs: backendRefs,

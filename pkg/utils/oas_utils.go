@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
+	"net/url"
 	"regexp"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -11,9 +14,97 @@ import (
 var (
 	// NonWordCharRegexp not word characters (== [^0-9A-Za-z_])
 	NonWordCharRegexp = regexp.MustCompile(`\W`)
+	// TemplateRegexp used to render openapi server URLs
+	TemplateRegexp = regexp.MustCompile(`{([\w]+)}`)
+	// LastSlashRegexp matches the last slash
+	LastSlashRegexp = regexp.MustCompile(`/$`)
 )
 
-func OpenAPIMatcherFromOASOperations(path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation) gatewayapiv1beta1.HTTPRouteMatch {
+func FirstServerFromOpenAPI(obj *openapi3.T) *openapi3.Server {
+	if obj == nil {
+		return nil
+	}
+
+	// take only first server
+	// From https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md
+	//   If the servers property is not provided, or is an empty array, the default value would be a Server Object with a url value of /.
+	server := &openapi3.Server{
+		URL:       `/`,
+		Variables: map[string]*openapi3.ServerVariable{},
+	}
+
+	// Current constraint: only read the first item when there are multiple servers
+	// Maybe this should be user provided setting
+	if len(obj.Servers) > 0 {
+		server = obj.Servers[0]
+	}
+
+	return server
+}
+
+func RenderOpenAPIServerURLStr(server *openapi3.Server) (string, error) {
+	if server == nil {
+		return "", nil
+	}
+
+	data := &struct {
+		Data map[string]string
+	}{
+		map[string]string{},
+	}
+
+	for variableName, variable := range server.Variables {
+		data.Data[variableName] = variable.Default
+	}
+
+	urlTemplate := TemplateRegexp.ReplaceAllString(server.URL, `{{ index .Data "$1" }}`)
+
+	tObj, err := template.New(server.URL).Parse(urlTemplate)
+	if err != nil {
+		return "", err
+	}
+
+	var tpl bytes.Buffer
+	err = tObj.Execute(&tpl, data)
+	if err != nil {
+		return "", err
+	}
+
+	return tpl.String(), nil
+}
+
+func RenderOpenAPIServerURL(server *openapi3.Server) (*url.URL, error) {
+	serverURLStr, err := RenderOpenAPIServerURLStr(server)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(serverURLStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return serverURL, nil
+}
+
+func BasePathFromOpenAPI(obj *openapi3.T) (string, error) {
+	server := FirstServerFromOpenAPI(obj)
+	serverURL, err := RenderOpenAPIServerURL(server)
+	if err != nil {
+		return "", err
+	}
+
+	return serverURL.Path, nil
+}
+
+func OpenAPIMatcherFromOASOperations(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation) gatewayapiv1beta1.HTTPRouteMatch {
+
+	// remove the last slash of the Base Path
+	sanitizedBasePath := LastSlashRegexp.ReplaceAllString(basePath, "")
+
+	//  According OAS 3.0: path MUST begin with a slash
+	matchPath := fmt.Sprintf("%s%s", sanitizedBasePath, path)
+
 	pathHeadersMatch := headersMatchFromParams(pathItem.Parameters)
 	operationHeadersMatch := headersMatchFromParams(op.Parameters)
 
@@ -37,7 +128,7 @@ func OpenAPIMatcherFromOASOperations(path string, pathItem *openapi3.PathItem, v
 		Path: &gatewayapiv1beta1.HTTPPathMatch{
 			// TODO(eguzki): consider other path match types like PathPrefix
 			Type:  &[]gatewayapiv1beta1.PathMatchType{gatewayapiv1beta1.PathMatchExact}[0],
-			Value: &[]string{path}[0],
+			Value: &[]string{matchPath}[0],
 		},
 		Headers:     headersMatch,
 		QueryParams: queryParams,
