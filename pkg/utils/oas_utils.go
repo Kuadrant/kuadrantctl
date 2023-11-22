@@ -97,8 +97,7 @@ func BasePathFromOpenAPI(obj *openapi3.T) (string, error) {
 	return serverURL.Path, nil
 }
 
-func OpenAPIMatcherFromOASOperations(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation) gatewayapiv1beta1.HTTPRouteMatch {
-
+func OpenAPIMatcherFromOASOperations(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1beta1.PathMatchType) gatewayapiv1beta1.HTTPRouteMatch {
 	// remove the last slash of the Base Path
 	sanitizedBasePath := LastSlashRegexp.ReplaceAllString(basePath, "")
 
@@ -126,8 +125,7 @@ func OpenAPIMatcherFromOASOperations(basePath, path string, pathItem *openapi3.P
 	return gatewayapiv1beta1.HTTPRouteMatch{
 		Method: &[]gatewayapiv1beta1.HTTPMethod{gatewayapiv1beta1.HTTPMethod(verb)}[0],
 		Path: &gatewayapiv1beta1.HTTPPathMatch{
-			// TODO(eguzki): consider other path match types like PathPrefix
-			Type:  &[]gatewayapiv1beta1.PathMatchType{gatewayapiv1beta1.PathMatchExact}[0],
+			Type:  &pathMatchType,
 			Value: &[]string{matchPath}[0],
 		},
 		Headers:     headersMatch,
