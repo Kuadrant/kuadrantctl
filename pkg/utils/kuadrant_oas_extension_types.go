@@ -14,6 +14,7 @@ type RouteObject struct {
 	Namespace  *string                             `json:"namespace,omitempty"`
 	Hostnames  []gatewayapiv1beta1.Hostname        `json:"hostnames,omitempty"`
 	ParentRefs []gatewayapiv1beta1.ParentReference `json:"parentRefs,omitempty"`
+	Labels     map[string]string                   `json:"labels,omitempty"`
 }
 
 type KuadrantOASInfoExtension struct {
@@ -48,14 +49,20 @@ type KuadrantRateLimitExtension struct {
 }
 
 type KuadrantOASPathExtension struct {
-	Enable      *bool                              `json:"enable,omitempty"`
-	BackendRefs []gatewayapiv1beta1.HTTPBackendRef `json:"backendRefs,omitempty"`
-	RateLimit   *KuadrantRateLimitExtension        `json:"rate_limit,omitempty"`
+	Disable       *bool                              `json:"disable,omitempty"`
+	PathMatchType *gatewayapiv1beta1.PathMatchType   `json:"pathMatchType,omitempty"`
+	BackendRefs   []gatewayapiv1beta1.HTTPBackendRef `json:"backendRefs,omitempty"`
+	RateLimit     *KuadrantRateLimitExtension        `json:"rate_limit,omitempty"`
 }
 
-func (k *KuadrantOASPathExtension) IsEnabled() bool {
+func (k *KuadrantOASPathExtension) IsDisabled() bool {
 	// Set default
-	return ptr.Deref(k.Enable, false)
+	return ptr.Deref(k.Disable, false)
+}
+
+func (k *KuadrantOASPathExtension) GetPathMatchType() gatewayapiv1beta1.PathMatchType {
+	// Set default
+	return ptr.Deref(k.PathMatchType, gatewayapiv1beta1.PathMatchExact)
 }
 
 func NewKuadrantOASPathExtension(pathItem *openapi3.PathItem) (*KuadrantOASPathExtension, error) {

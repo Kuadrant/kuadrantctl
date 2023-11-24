@@ -65,7 +65,7 @@ func runGenerateGatewayApiHttpRoute(cmd *cobra.Command, args []string) error {
 }
 
 func buildHTTPRoute(doc *openapi3.T) *gatewayapiv1beta1.HTTPRoute {
-	httpRoute := &gatewayapiv1beta1.HTTPRoute{
+	return &gatewayapiv1beta1.HTTPRoute{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "gateway.networking.k8s.io/v1beta1",
 			Kind:       "HTTPRoute",
@@ -79,12 +79,4 @@ func buildHTTPRoute(doc *openapi3.T) *gatewayapiv1beta1.HTTPRoute {
 			Rules:     gatewayapi.HTTPRouteRulesFromOAS(doc),
 		},
 	}
-
-	// Extract and set labels
-	labels, ok := gatewayapi.ExtractLabelsFromOAS(doc)
-	if ok {
-		httpRoute.ObjectMeta.Labels = labels
-	}
-
-	return httpRoute
 }

@@ -10,6 +10,8 @@ info:
     route:  ## HTTPRoute metadata
       name: "petstore"
       namespace: "petstore"
+      labels:  ## map[string]string
+        deployment: petstore
       hostnames:  ## []gateway.networking.k8s.io/v1beta1.Hostname
         - example.com
       parentRefs:  ## []gateway.networking.k8s.io/v1beta1.ParentReference
@@ -27,7 +29,8 @@ is the default when there is no operation level configuration.
 paths:
   /cat:
     x-kuadrant:  ## Path level Kuadrant Extension
-      enable: true  ## Add to the HTTPRoute. Optional. Default: false
+      disable: true  ## Remove from the HTTPRoute. Optional. Default: false
+      pathMatchType: Exact ## Specifies how to match against the path Value. Valid values: [Exact;PathPrefix]. Optional. Default: Exact
       backendRefs:  ## Backend references to be included in the HTTPRoute. []gateway.networking.k8s.io/v1beta1.HTTPBackendRef. Optional.
         - name: petstore
           port: 80
@@ -55,7 +58,8 @@ paths:
   /cat:
     get:
       x-kuadrant:  ## Path level Kuadrant Extension
-        enable: true  ## Add to the HTTPRoute. Optional. Default: false
+        disable: true  ## Remove from the HTTPRoute. Optional. Default: path level "disable" value
+        pathMatchType: Exact ## Specifies how to match against the path Value. Valid values: [Exact;PathPrefix]. Optional. Default: Exact
         backendRefs:  ## Backend references to be included in the HTTPRoute. Optional.
           - name: petstore
             port: 80

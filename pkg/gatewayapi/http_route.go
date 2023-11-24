@@ -1,8 +1,6 @@
 package gatewayapi
 
 import (
-	"fmt"
-
 	"github.com/getkin/kin-openapi/openapi3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
@@ -29,7 +27,10 @@ func HTTPRouteObjectMetaFromOAS(doc *openapi3.T) metav1.ObjectMeta {
 		panic("info kuadrant extension route name not found")
 	}
 
-	om := metav1.ObjectMeta{Name: *kuadrantInfoExtension.Route.Name}
+	om := metav1.ObjectMeta{
+		Name:   *kuadrantInfoExtension.Route.Name,
+		Labels: kuadrantInfoExtension.Route.Labels,
+	}
 
 	if kuadrantInfoExtension.Route.Namespace != nil {
 		om.Namespace = *kuadrantInfoExtension.Route.Namespace
@@ -89,8 +90,6 @@ func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
 			panic(err)
 		}
 
-		pathEnabled := kuadrantPathExtension.IsEnabled()
-
 		// Operations
 		for verb, operation := range pathItem.Operations() {
 			kuadrantOperationExtension, err := utils.NewKuadrantOASOperationExtension(operation)
@@ -98,7 +97,7 @@ func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
 				panic(err)
 			}
 
-			if !ptr.Deref(kuadrantOperationExtension.Enable, pathEnabled) {
+			if ptr.Deref(kuadrantOperationExtension.Disable, kuadrantPathExtension.IsDisabled()) {
 				// not enabled for the operation
 				continue
 			}
@@ -109,7 +108,13 @@ func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
 				backendRefs = kuadrantOperationExtension.BackendRefs
 			}
 
-			rules = append(rules, buildHTTPRouteRule(basePath, path, pathItem, verb, operation, backendRefs))
+			// default pathMatchType at the path level
+			pathMatchType := ptr.Deref(
+				kuadrantOperationExtension.PathMatchType,
+				kuadrantPathExtension.GetPathMatchType(),
+			)
+
+			rules = append(rules, buildHTTPRouteRule(basePath, path, pathItem, verb, operation, backendRefs, pathMatchType))
 		}
 	}
 
@@ -120,30 +125,8 @@ func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
 	return rules
 }
 
-func ExtractLabelsFromOAS(doc *openapi3.T) (map[string]string, bool) {
-	if doc.Info == nil || doc.Info.Extensions == nil {
-		return nil, false
-	}
-
-	if extension, ok := doc.Info.Extensions["x-kuadrant"]; ok {
-		if extensionMap, ok := extension.(map[string]interface{}); ok {
-			if route, ok := extensionMap["route"].(map[string]interface{}); ok {
-				if labelsInterface, ok := route["labels"]; ok {
-					labels := make(map[string]string)
-					for key, value := range labelsInterface.(map[string]interface{}) {
-						labels[key] = fmt.Sprint(value)
-					}
-					return labels, true
-				}
-			}
-		}
-	}
-
-	return nil, false
-}
-
-func buildHTTPRouteRule(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, backendRefs []gatewayapiv1beta1.HTTPBackendRef) gatewayapiv1beta1.HTTPRouteRule {
-	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op)
+func buildHTTPRouteRule(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, backendRefs []gatewayapiv1beta1.HTTPBackendRef, pathMatchType gatewayapiv1beta1.PathMatchType) gatewayapiv1beta1.HTTPRouteRule {
+	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op, pathMatchType)
 
 	return gatewayapiv1beta1.HTTPRouteRule{
 		BackendRefs: backendRefs,

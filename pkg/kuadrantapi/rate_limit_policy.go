@@ -33,8 +33,6 @@ func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2
 			panic(err)
 		}
 
-		pathEnabled := kuadrantPathExtension.IsEnabled()
-
 		// Operations
 		for verb, operation := range pathItem.Operations() {
 			kuadrantOperationExtension, err := utils.NewKuadrantOASOperationExtension(operation)
@@ -42,7 +40,7 @@ func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2
 				panic(err)
 			}
 
-			if !ptr.Deref(kuadrantOperationExtension.Enable, pathEnabled) {
+			if ptr.Deref(kuadrantOperationExtension.Disable, kuadrantPathExtension.IsDisabled()) {
 				// not enabled for the operation
 				//fmt.Printf("OUT not enabled: path: %s, method: %s\n", path, verb)
 				continue
@@ -60,10 +58,16 @@ func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2
 				continue
 			}
 
+			// default pathMatchType at the path level
+			pathMatchType := ptr.Deref(
+				kuadrantOperationExtension.PathMatchType,
+				kuadrantPathExtension.GetPathMatchType(),
+			)
+
 			limitName := utils.OpenAPIOperationName(path, verb, operation)
 
 			limits[limitName] = kuadrantapiv1beta2.Limit{
-				RouteSelectors: buildLimitRouteSelectors(basePath, path, pathItem, verb, operation),
+				RouteSelectors: buildLimitRouteSelectors(basePath, path, pathItem, verb, operation, pathMatchType),
 				When:           rateLimit.When,
 				Counters:       rateLimit.Counters,
 				Rates:          rateLimit.Rates,
@@ -78,8 +82,8 @@ func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2
 	return limits
 }
 
-func buildLimitRouteSelectors(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation) []kuadrantapiv1beta2.RouteSelector {
-	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op)
+func buildLimitRouteSelectors(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1beta1.PathMatchType) []kuadrantapiv1beta2.RouteSelector {
+	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op, pathMatchType)
 
 	return []kuadrantapiv1beta2.RouteSelector{
 		{
