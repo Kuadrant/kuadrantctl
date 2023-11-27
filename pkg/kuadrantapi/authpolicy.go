@@ -16,8 +16,8 @@ func AuthPolicyObjectMetaFromOAS(doc *openapi3.T) metav1.ObjectMeta {
 	return gatewayapi.HTTPRouteObjectMetaFromOAS(doc)
 }
 
-func buildAuthPolicyRouteSelectors(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation) []kuadrantapiv1beta2.RouteSelector {
-	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op)
+func buildAuthPolicyRouteSelectors(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1beta1.PathMatchType) []kuadrantapiv1beta2.RouteSelector {
+	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op, pathMatchType)
 
 	return []kuadrantapiv1beta2.RouteSelector{
 		{
@@ -41,8 +41,6 @@ func AuthPolicyAuthenticationSchemeFromOAS(doc *openapi3.T) map[string]kuadranta
 			panic(err)
 		}
 
-		pathEnabled := kuadrantPathExtension.IsEnabled()
-
 		// Operations
 		for verb, operation := range pathItem.Operations() {
 			kuadrantOperationExtension, err := utils.NewKuadrantOASOperationExtension(operation)
@@ -50,7 +48,7 @@ func AuthPolicyAuthenticationSchemeFromOAS(doc *openapi3.T) map[string]kuadranta
 				panic(err)
 			}
 
-			if !ptr.Deref(kuadrantOperationExtension.Enable, pathEnabled) {
+			if ptr.Deref(kuadrantOperationExtension.Disable, kuadrantPathExtension.IsDisabled()) {
 				// not enabled for the operation
 				//fmt.Printf("OUT not enabled: path: %s, method: %s\n", path, verb)
 				continue
@@ -64,13 +62,19 @@ func AuthPolicyAuthenticationSchemeFromOAS(doc *openapi3.T) map[string]kuadranta
 				continue
 			}
 
+			// default pathMatchType at the path level
+			pathMatchType := ptr.Deref(
+				kuadrantOperationExtension.PathMatchType,
+				kuadrantPathExtension.GetPathMatchType(),
+			)
+
 			oidcScheme := findOIDCSecuritySchemesFromRequirements(doc, secRequirements)
 
 			authName := utils.OpenAPIOperationName(path, verb, operation)
 
 			authentication[authName] = kuadrantapiv1beta2.AuthenticationSpec{
 				CommonAuthRuleSpec: kuadrantapiv1beta2.CommonAuthRuleSpec{
-					RouteSelectors: buildAuthPolicyRouteSelectors(basePath, path, pathItem, verb, operation),
+					RouteSelectors: buildAuthPolicyRouteSelectors(basePath, path, pathItem, verb, operation, pathMatchType),
 				},
 				AuthenticationSpec: authorinoapi.AuthenticationSpec{
 					AuthenticationMethodSpec: authorinoapi.AuthenticationMethodSpec{
