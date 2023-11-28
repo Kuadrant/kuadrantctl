@@ -3,6 +3,15 @@ openapi: "3.1.0"
 info:
   title: "Pet Store API"
   version: "1.0.0"
+  x-kuadrant:
+    route:
+      name: "petstore"
+      namespace: "petstore"
+      hostnames:
+        - example.com
+      parentRefs:
+        - name: istio-ingressgateway
+          namespace: istio-system
 servers:
   - url: https://toplevel.example.io/v1
 paths:
@@ -15,7 +24,7 @@ paths:
     post:  # API key
       operationId: "postCat"
       security:
-        - petstore_api_key: []
+        - cat_api_key: []
       responses:
         405:
           description: "invalid input"
@@ -23,17 +32,30 @@ paths:
     get:  # OIDC
       operationId: "getDog"
       security:
-        - petstore_oidc:
+        - oidc:
           - read:dogs
+      responses:
+        405:
+          description: "invalid input"
+  /snake:
+    get:  # OIDC or API key
+      operationId: "getSnake"
+      security:
+        - oidc: ["read:snakes"]
+        - snakes_api_key: []
       responses:
         405:
           description: "invalid input"
 components:
   securitySchemes:
-    petstore_api_key:
+    cat_api_key:
       type: apiKey
       name: api_key
       in: header
-    petstore_oidc:
+    oidc:
       type: openIdConnect
-      openIdConnectUrl: http://example.org/auth/realms/myrealm
+      openIdConnectUrl: https://example.com/.well-known/openid-configuration
+    snakes_api_key:
+      type: apiKey
+      name: snake_token
+      in: query

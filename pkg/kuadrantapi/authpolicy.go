@@ -1,6 +1,9 @@
 package kuadrantapi
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/getkin/kin-openapi/openapi3"
 	authorinoapi "github.com/kuadrant/authorino/api/v1beta2"
 	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
@@ -10,6 +13,10 @@ import (
 
 	"github.com/kuadrant/kuadrantctl/pkg/gatewayapi"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
+)
+
+const (
+	APIKeySecretLabel = "kuadrant.io/apikeys-by"
 )
 
 func AuthPolicyObjectMetaFromOAS(doc *openapi3.T) metav1.ObjectMeta {
@@ -122,27 +129,10 @@ func AuthPolicyAuthenticationSchemeFromOAS(doc *openapi3.T) map[string]kuadranta
 				kuadrantPathExtension.GetPathMatchType(),
 			)
 
-			oidcScheme := findOIDCSecuritySchemesFromRequirements(doc, secRequirements)
+			operationAuthentication := buildOperationAuthentication(doc, basePath, path, pathItem, verb, operation, pathMatchType, secRequirements)
 
-			if oidcScheme == nil {
-				// no oidc sec scheme found
-				continue
-			}
-
-			authName := utils.OpenAPIOperationName(path, verb, operation)
-
-			authentication[authName] = kuadrantapiv1beta2.AuthenticationSpec{
-				CommonAuthRuleSpec: kuadrantapiv1beta2.CommonAuthRuleSpec{
-					RouteSelectors: buildAuthPolicyRouteSelectors(basePath, path, pathItem, verb, operation, pathMatchType),
-				},
-				AuthenticationSpec: authorinoapi.AuthenticationSpec{
-					AuthenticationMethodSpec: authorinoapi.AuthenticationMethodSpec{
-						Jwt: &authorinoapi.JwtAuthenticationSpec{
-							IssuerUrl: oidcScheme.OpenIdConnectUrl,
-						},
-					},
-				},
-			}
+			// Aggregate auth methods per operation
+			authentication = utils.MergeMaps(authentication, operationAuthentication)
 		}
 	}
 
@@ -153,23 +143,112 @@ func AuthPolicyAuthenticationSchemeFromOAS(doc *openapi3.T) map[string]kuadranta
 	return authentication
 }
 
-func findOIDCSecuritySchemesFromRequirements(doc *openapi3.T, secRequirements openapi3.SecurityRequirements) *openapi3.SecurityScheme {
+func buildOperationAuthentication(doc *openapi3.T, basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1beta1.PathMatchType, secRequirements openapi3.SecurityRequirements) map[string]kuadrantapiv1beta2.AuthenticationSpec {
+	// OpenAPI supports as security requirement to have multiple security schemes and ALL
+	// of the must be satisfied.
+	// From https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#security-requirement-object
+	// Kuadrant does not support it yet: https://github.com/Kuadrant/authorino/issues/112
+	// not supported (AND'ed)
+	// security:
+	//   - petstore_api_key: []
+	//	   petstore_oidc: []
+	// supported (OR'ed)
+	// security:
+	//   - petstore_api_key: []
+	//	 - petstore_oidc: []
+
+	opAuth := make(map[string]kuadrantapiv1beta2.AuthenticationSpec, 0)
 	for _, secReq := range secRequirements {
-		for secReqItemName := range secReq {
-			secScheme, ok := doc.Components.SecuritySchemes[secReqItemName]
-			if !ok {
-				// should never happen. OpenAPI validation should detect this issue
-				continue
+		if len(secReq) > 1 {
+			panic(errors.New("multiple schemes that require ALL must be satisfied, currently not supported"))
+		}
+
+		extractSecReqItemName := func(sr openapi3.SecurityRequirement) string {
+			for secReqItemName := range sr {
+				return secReqItemName
 			}
-			if secScheme == nil || secScheme.Value == nil {
-				continue
-			}
-			// Ref https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#fixed-fields-23
-			if secScheme.Value.Type == "openIdConnect" {
-				return secScheme.Value
-			}
+
+			return ""
+		}
+
+		secReqItemName := extractSecReqItemName(secReq)
+
+		secScheme, ok := doc.Components.SecuritySchemes[secReqItemName]
+		if !ok {
+			// should never happen. OpenAPI validation should detect this issue
+			continue
+		}
+
+		if secScheme == nil || secScheme.Value == nil {
+			continue
+		}
+
+		authName := fmt.Sprintf("%s_%s", utils.OpenAPIOperationName(path, verb, op), secReqItemName)
+
+		// Ref https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#fixed-fields-23
+		switch secScheme.Value.Type {
+		case "openIdConnect":
+			opAuth[authName] = openIDAuthenticationSpec(basePath, path, pathItem, verb, op, pathMatchType, *secScheme.Value)
+		case "apiKey":
+			opAuth[authName] = apiKeyAuthenticationSpec(basePath, path, pathItem, verb, op, pathMatchType, secReqItemName, *secScheme.Value)
 		}
 	}
 
-	return nil
+	if len(opAuth) == 0 {
+		return nil
+	}
+
+	return opAuth
+}
+
+func apiKeyAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1beta1.PathMatchType, secSchemeName string, secScheme openapi3.SecurityScheme) kuadrantapiv1beta2.AuthenticationSpec {
+	// From https://github.com/Kuadrant/kuadrantctl/pull/46#issuecomment-1830278191
+	// secScheme.In is required
+	// secScheme.Name is required
+	credentials := authorinoapi.Credentials{}
+	switch secScheme.In {
+	case "query":
+		credentials.QueryString = &authorinoapi.Named{Name: secScheme.Name}
+	case "header":
+		credentials.CustomHeader = &authorinoapi.CustomHeader{
+			Named: authorinoapi.Named{Name: secScheme.Name},
+		}
+	case "cookie":
+		credentials.Cookie = &authorinoapi.Named{Name: secScheme.Name}
+	}
+
+	return kuadrantapiv1beta2.AuthenticationSpec{
+		CommonAuthRuleSpec: kuadrantapiv1beta2.CommonAuthRuleSpec{
+			RouteSelectors: buildAuthPolicyRouteSelectors(basePath, path, pathItem, verb, op, pathMatchType),
+		},
+		AuthenticationSpec: authorinoapi.AuthenticationSpec{
+			Credentials: credentials,
+			AuthenticationMethodSpec: authorinoapi.AuthenticationMethodSpec{
+				ApiKey: &authorinoapi.ApiKeyAuthenticationSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							// label selector be like
+							// kuadrant.io/apikeys-by: ${SecuritySchemeName}
+							APIKeySecretLabel: secSchemeName,
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func openIDAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1beta1.PathMatchType, secScheme openapi3.SecurityScheme) kuadrantapiv1beta2.AuthenticationSpec {
+	return kuadrantapiv1beta2.AuthenticationSpec{
+		CommonAuthRuleSpec: kuadrantapiv1beta2.CommonAuthRuleSpec{
+			RouteSelectors: buildAuthPolicyRouteSelectors(basePath, path, pathItem, verb, op, pathMatchType),
+		},
+		AuthenticationSpec: authorinoapi.AuthenticationSpec{
+			AuthenticationMethodSpec: authorinoapi.AuthenticationMethodSpec{
+				Jwt: &authorinoapi.JwtAuthenticationSpec{
+					IssuerUrl: secScheme.OpenIdConnectUrl,
+				},
+			},
+		},
+	}
 }
