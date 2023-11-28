@@ -151,11 +151,11 @@ func buildOperationAuthentication(doc *openapi3.T, basePath, path string, pathIt
 	// not supported (AND'ed)
 	// security:
 	//   - petstore_api_key: []
-	//	   petstore_oidc: []
+	//     petstore_oidc: []
 	// supported (OR'ed)
 	// security:
 	//   - petstore_api_key: []
-	//	 - petstore_oidc: []
+	//   - petstore_oidc: []
 
 	opAuth := make(map[string]kuadrantapiv1beta2.AuthenticationSpec, 0)
 	for _, secReq := range secRequirements {
