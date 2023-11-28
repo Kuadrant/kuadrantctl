@@ -83,6 +83,7 @@ func buildAuthPolicy(doc *openapi3.T) *kuadrantapiv1beta2.AuthPolicy {
 			AuthScheme: kuadrantapiv1beta2.AuthSchemeSpec{
 				Authentication: kuadrantapi.AuthPolicyAuthenticationSchemeFromOAS(doc),
 			},
+			RouteSelectors: kuadrantapi.AuthPolicyTopRouteSelectorsFromOAS(doc),
 		},
 	}
 

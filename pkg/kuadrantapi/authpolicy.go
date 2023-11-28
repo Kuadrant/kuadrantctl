@@ -26,6 +26,60 @@ func buildAuthPolicyRouteSelectors(basePath, path string, pathItem *openapi3.Pat
 	}
 }
 
+func AuthPolicyTopRouteSelectorsFromOAS(doc *openapi3.T) []kuadrantapiv1beta2.RouteSelector {
+	routeSelectors := make([]kuadrantapiv1beta2.RouteSelector, 0)
+
+	basePath, err := utils.BasePathFromOpenAPI(doc)
+	if err != nil {
+		panic(err)
+	}
+
+	for path, pathItem := range doc.Paths {
+		kuadrantPathExtension, err := utils.NewKuadrantOASPathExtension(pathItem)
+		if err != nil {
+			panic(err)
+		}
+
+		// Operations
+		for verb, operation := range pathItem.Operations() {
+			kuadrantOperationExtension, err := utils.NewKuadrantOASOperationExtension(operation)
+			if err != nil {
+				panic(err)
+			}
+
+			if ptr.Deref(kuadrantOperationExtension.Disable, kuadrantPathExtension.IsDisabled()) {
+				// not enabled for the operation
+				//fmt.Printf("OUT not enabled: path: %s, method: %s\n", path, verb)
+				continue
+			}
+
+			// Get operation level security requirements or fallback to global security requirements
+			secRequirements := ptr.Deref(operation.Security, doc.Security)
+
+			// Top RouteSelectors define the matching rules to call external auth service
+			// group together any routes that has at least one security requirement
+			if len(secRequirements) == 0 {
+				// no security
+				continue
+			}
+
+			// default pathMatchType at the path level
+			pathMatchType := ptr.Deref(
+				kuadrantOperationExtension.PathMatchType,
+				kuadrantPathExtension.GetPathMatchType(),
+			)
+
+			routeSelectors = append(routeSelectors, buildAuthPolicyRouteSelectors(basePath, path, pathItem, verb, operation, pathMatchType)...)
+		}
+	}
+
+	if len(routeSelectors) == 0 {
+		return nil
+	}
+
+	return routeSelectors
+}
+
 func AuthPolicyAuthenticationSchemeFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2.AuthenticationSpec {
 	authentication := make(map[string]kuadrantapiv1beta2.AuthenticationSpec)
 
