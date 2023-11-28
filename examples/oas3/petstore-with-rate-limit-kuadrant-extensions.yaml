@@ -17,7 +17,6 @@ servers:
 paths:
   /cat:
     x-kuadrant:  ## Path level Kuadrant Extension
-      enable: true
       backendRefs:
         - name: petstore
           port: 80
@@ -36,18 +35,7 @@ paths:
           description: "invalid input"
     post:  # NOT added to the route
       x-kuadrant:  ## Operation level Kuadrant Extension
-        enable: false
-        backendRefs:
-          - name: petstore
-            port: 80
-            namespace: petstore
-        rate_limit:
-          rates:
-            - limit: 2
-              duration: 10
-              unit: second
-          counters:
-            - request.headers.x-forwarded-for
+        disable: true
       operationId: "postCat"
       responses:
         405:
@@ -55,7 +43,6 @@ paths:
   /dog:
     get:  # Added to the route and rate limited
       x-kuadrant:  ## Operation level Kuadrant Extension
-        enable: true
         backendRefs:
           - name: petstore
             port: 80
@@ -73,18 +60,11 @@ paths:
           description: "invalid input"
     post:  # Added to the route and NOT rate limited
       x-kuadrant:  ## Operation level Kuadrant Extension
-        enable: true
         backendRefs:
           - name: petstore
             port: 80
             namespace: petstore
       operationId: "postDog"
-      responses:
-        405:
-          description: "invalid input"
-  /mouse:
-    get:  # NOT added to the route
-      operationId: "getMouse"
       responses:
         405:
           description: "invalid input"

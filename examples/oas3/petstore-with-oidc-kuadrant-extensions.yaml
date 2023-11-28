@@ -1,0 +1,53 @@
+---
+openapi: "3.0.3"
+info:
+  title: "Pet Store API"
+  version: "1.0.0"
+  x-kuadrant:
+    route:
+      name: "petstore"
+      namespace: "petstore"
+      hostnames:
+        - example.com
+      parentRefs:
+        - name: istio-ingressgateway
+          namespace: istio-system
+servers:
+  - url: https://example.io/api/v1
+paths:
+  /cat:
+    x-kuadrant:  ## Path level Kuadrant Extension
+      backendRefs:
+        - name: petstore
+          port: 80
+          namespace: petstore
+    get:  # Added to the route and public (not auth)
+      operationId: "getCat"
+      responses:
+        405:
+          description: "invalid input"
+    post:  # NOT added to the route
+      x-kuadrant:  ## Operation level Kuadrant Extension
+        enable: false
+      operationId: "postCat"
+      responses:
+        405:
+          description: "invalid input"
+  /dog:
+    get:  # Added to the route and authenticated
+      x-kuadrant:  ## Operation level Kuadrant Extension
+        backendRefs:
+          - name: petstore
+            port: 80
+            namespace: petstore
+      operationId: "getDog"
+      security:
+        - openIdConnect: []
+      responses:
+        405:
+          description: "invalid input"
+components:
+  securitySchemes:
+    openIdConnect:
+      type: openIdConnect
+      openIdConnectUrl: https://example.com/.well-known/openid-configuration

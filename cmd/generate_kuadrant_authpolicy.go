@@ -16,14 +16,14 @@ import (
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
 
-//kuadrantctl generate kuadrant ratelimitpolicy --oas [OAS_FILE_PATH | OAS_URL | @]
+//kuadrantctl generate kuadrant authpolicy --oas [OAS_FILE_PATH | OAS_URL | @]
 
-func generateKuadrantRateLimitPolicyCommand() *cobra.Command {
+func generateKuadrantAuthPolicyCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "ratelimitpolicy",
-		Short: "Generate Kuadrant RateLimitPolicy from OpenAPI 3.0.X",
-		Long:  "Generate Kuadrant RateLimitPolicy from OpenAPI 3.0.X",
-		RunE:  runGenerateKuadrantRateLimitPolicy,
+		Use:   "authpolicy",
+		Short: "Generate Kuadrant AuthPolicy from OpenAPI 3.0.X",
+		Long:  "Generate Kuadrant AuthPolicy from OpenAPI 3.0.X",
+		RunE:  runGenerateKuadrantAuthPolicy,
 	}
 
 	// OpenAPI ref
@@ -36,7 +36,7 @@ func generateKuadrantRateLimitPolicyCommand() *cobra.Command {
 	return cmd
 }
 
-func runGenerateKuadrantRateLimitPolicy(cmd *cobra.Command, args []string) error {
+func runGenerateKuadrantAuthPolicy(cmd *cobra.Command, args []string) error {
 	oasDataRaw, err := utils.ReadExternalResource(generateGatewayAPIHTTPRouteOAS)
 	if err != nil {
 		return err
@@ -53,9 +53,9 @@ func runGenerateKuadrantRateLimitPolicy(cmd *cobra.Command, args []string) error
 		return fmt.Errorf("OpenAPI validation error: %w", err)
 	}
 
-	rlp := buildRateLimitPolicy(doc)
+	ap := buildAuthPolicy(doc)
 
-	jsonData, err := json.Marshal(rlp)
+	jsonData, err := json.Marshal(ap)
 	if err != nil {
 		return err
 	}
@@ -64,30 +64,34 @@ func runGenerateKuadrantRateLimitPolicy(cmd *cobra.Command, args []string) error
 	return nil
 }
 
-func buildRateLimitPolicy(doc *openapi3.T) *kuadrantapiv1beta2.RateLimitPolicy {
+func buildAuthPolicy(doc *openapi3.T) *kuadrantapiv1beta2.AuthPolicy {
 	routeMeta := gatewayapi.HTTPRouteObjectMetaFromOAS(doc)
 
-	rlp := &kuadrantapiv1beta2.RateLimitPolicy{
+	ap := &kuadrantapiv1beta2.AuthPolicy{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "kuadrant.io/v1beta2",
-			Kind:       "RateLimitPolicy",
+			Kind:       "AuthPolicy",
 		},
-		ObjectMeta: kuadrantapi.RateLimitPolicyObjectMetaFromOAS(doc),
-		Spec: kuadrantapiv1beta2.RateLimitPolicySpec{
+		ObjectMeta: kuadrantapi.AuthPolicyObjectMetaFromOAS(doc),
+		Spec: kuadrantapiv1beta2.AuthPolicySpec{
 			TargetRef: gatewayapiv1alpha2.PolicyTargetReference{
 				Group: gatewayapiv1beta1.Group("gateway.networking.k8s.io"),
 				Kind:  gatewayapiv1beta1.Kind("HTTPRoute"),
 				Name:  gatewayapiv1beta1.ObjectName(routeMeta.Name),
 			},
-			Limits: kuadrantapi.RateLimitPolicyLimitsFromOAS(doc),
+			// Currently only authentication rules enforced
+			AuthScheme: kuadrantapiv1beta2.AuthSchemeSpec{
+				Authentication: kuadrantapi.AuthPolicyAuthenticationSchemeFromOAS(doc),
+			},
+			RouteSelectors: kuadrantapi.AuthPolicyTopRouteSelectorsFromOAS(doc),
 		},
 	}
 
 	if routeMeta.Namespace != "" {
-		rlp.Spec.TargetRef.Namespace = &[]gatewayapiv1beta1.Namespace{
+		ap.Spec.TargetRef.Namespace = &[]gatewayapiv1beta1.Namespace{
 			gatewayapiv1beta1.Namespace(routeMeta.Namespace),
 		}[0]
 	}
 
-	return rlp
+	return ap
 }
