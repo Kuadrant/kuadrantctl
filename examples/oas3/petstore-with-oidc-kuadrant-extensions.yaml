@@ -17,7 +17,6 @@ servers:
 paths:
   /cat:
     x-kuadrant:  ## Path level Kuadrant Extension
-      enable: true
       backendRefs:
         - name: petstore
           port: 80
@@ -37,7 +36,6 @@ paths:
   /dog:
     get:  # Added to the route and authenticated
       x-kuadrant:  ## Operation level Kuadrant Extension
-        enable: true
         backendRefs:
           - name: petstore
             port: 80
