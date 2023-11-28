@@ -187,7 +187,7 @@ components:
   securitySchemes:
     openIdConnect:
       type: openIdConnect
-      openIdConnectUrl: https://${KEYCLOAK_PUBLIC_DOMAIN}/realms/petstore
+      openIdConnectUrl: https://${KEYCLOAK_PUBLIC_DOMAIN}/auth/realms/petstore
 EOF
 ```
 </details>
@@ -234,7 +234,7 @@ export ACCESS_TOKEN=$(curl -k -H "Content-Type: application/x-www-form-urlencode
         -d 'client_id=petstore' \
         -d 'scope=openid' \
         -d 'username=bob' \
-        -d 'password=p' "https://${KEYCLOAK_PUBLIC_DOMAIN}/realms/petstore/protocol/openid-connect/token" | jq -r '.access_token')
+        -d 'password=p' "https://${KEYCLOAK_PUBLIC_DOMAIN}/auth/realms/petstore/protocol/openid-connect/token" | jq -r '.access_token')
 ```
 > Replace `${KEYCLOAK_PUBLIC_DOMAIN}` with your SSO instance domain
 
