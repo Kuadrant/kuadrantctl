@@ -124,6 +124,11 @@ func AuthPolicyAuthenticationSchemeFromOAS(doc *openapi3.T) map[string]kuadranta
 
 			oidcScheme := findOIDCSecuritySchemesFromRequirements(doc, secRequirements)
 
+			if oidcScheme == nil {
+				// no oidc sec scheme found
+				continue
+			}
+
 			authName := utils.OpenAPIOperationName(path, verb, operation)
 
 			authentication[authName] = kuadrantapiv1beta2.AuthenticationSpec{
