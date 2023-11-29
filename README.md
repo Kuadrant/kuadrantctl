@@ -11,10 +11,21 @@ go install github.com/kuadrant/kuadrantctl@latest
 ```
 > Golang 1.21+ required
 
+## Using with GitHub Actions
+
+```yaml
+      - name: Install kuadrantctl
+        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        with: # Grab the latest version
+          repo: Kuadrant/kuadrantctl
+```
+
 ## Commands
 * [Install Kuadrant](doc/install.md)
 * [Uninstall Kuadrant](doc/uninstall.md)
-* [Generate Gateway API HTTPRoute objects from OpenAPI 3](doc/generate-gateway-api-httproute.md)
+* [Generate Gateway API HTTPRoute objects from OpenAPI 3.X](doc/generate-gateway-api-httproute.md)
+* [Generate Kuadrant RateLimitPolicy from OpenAPI 3.X](doc/generate-kuadrant-rate-limit-policy.md)
+* [Generate Kuadrant AuthPolicy from OpenAPI 3.X](doc/generate-kuadrant-auth-policy.md)
 
 ## Contributing
 The [Development guide](doc/development.md) describes how to build the kuadrantctl CLI and how to test your changes before submitting a patch or opening a PR.
