@@ -1,0 +1,70 @@
+---
+openapi: "3.0.3"
+info:
+  title: "Pet Store API"
+  version: "1.0.0"
+  x-kuadrant:
+    route:
+      name: "petstore"
+      namespace: "petstore"
+      hostnames:
+        - example.com
+      parentRefs:
+        - name: istio-ingressgateway
+          namespace: istio-system
+servers:
+  - url: https://example.io/api/v1
+paths:
+  /cat:
+    x-kuadrant:  ## Path level Kuadrant Extension
+      backendRefs:
+        - name: petstore
+          port: 80
+          namespace: petstore
+      rate_limit:
+        rates:
+          - limit: 1
+            duration: 10
+            unit: second
+        counters:
+          - request.headers.x-forwarded-for
+    get:  # Added to the route and rate limited
+      operationId: "getCat"
+      responses:
+        405:
+          description: "invalid input"
+    post:  # NOT added to the route
+      x-kuadrant:  ## Operation level Kuadrant Extension
+        disable: true
+      operationId: "postCat"
+      responses:
+        405:
+          description: "invalid input"
+  /dog:
+    get:  # Added to the route and rate limited
+      x-kuadrant:  ## Operation level Kuadrant Extension
+        backendRefs:
+          - name: petstore
+            port: 80
+            namespace: petstore
+        rate_limit:
+          rates:
+            - limit: 3
+              duration: 10
+              unit: second
+          counters:
+            - request.headers.x-forwarded-for
+      operationId: "getDog"
+      responses:
+        405:
+          description: "invalid input"
+    post:  # Added to the route and NOT rate limited
+      x-kuadrant:  ## Operation level Kuadrant Extension
+        backendRefs:
+          - name: petstore
+            port: 80
+            namespace: petstore
+      operationId: "postDog"
+      responses:
+        405:
+          description: "invalid input"

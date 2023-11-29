@@ -18,7 +18,7 @@ istioctl: $(ISTIOCTL) ## Download istioctl locally if necessary.
 
 .PHONY: istio-install
 istio-install: istioctl ## Install istio.
-	$(ISTIOCTL) install --set profile=demo -y
+	$(ISTIOCTL) install -f utils/istio-operator.yaml -y
 
 .PHONY: istio-uninstall
 istio-uninstall: istioctl ## Uninstall istio.

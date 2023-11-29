@@ -11,5 +11,8 @@ func generateKuadrantCommand() *cobra.Command {
 		Long:  "Generate Kuadrant resources",
 	}
 
+	cmd.AddCommand(generateKuadrantRateLimitPolicyCommand())
+	cmd.AddCommand(generateKuadrantAuthPolicyCommand())
+
 	return cmd
 }

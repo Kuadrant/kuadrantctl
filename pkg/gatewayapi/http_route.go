@@ -2,62 +2,134 @@ package gatewayapi
 
 import (
 	"github.com/getkin/kin-openapi/openapi3"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+
+	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
 
-func HTTPRouteMatchesFromOAS(doc *openapi3.T) ([]gatewayapiv1beta1.HTTPRouteMatch, error) {
-	httpRouteMatches := []gatewayapiv1beta1.HTTPRouteMatch{}
-	pathMatchExactPath := gatewayapiv1beta1.PathMatchExact
-
-	for path, pathItem := range doc.Paths {
-
-		headers := []gatewayapiv1beta1.HTTPHeaderMatch{}
-		queryParams := []gatewayapiv1beta1.HTTPQueryParamMatch{}
-		headers, queryParams = addRuleMatcherFromParams(pathItem.Parameters, headers, queryParams)
-
-		for verb, operation := range pathItem.Operations() {
-
-			headers, queryParams = addRuleMatcherFromParams(operation.Parameters, headers, queryParams)
-
-			pathValue := path
-			httpMethod := gatewayapiv1beta1.HTTPMethod(verb)
-			httpRouteMatches = append(httpRouteMatches, gatewayapiv1beta1.HTTPRouteMatch{
-				Method: &httpMethod,
-				Path: &gatewayapiv1beta1.HTTPPathMatch{
-					Type:  &pathMatchExactPath,
-					Value: &pathValue,
-				},
-				Headers:     headers,
-				QueryParams: queryParams,
-			})
-		}
+func HTTPRouteObjectMetaFromOAS(doc *openapi3.T) metav1.ObjectMeta {
+	if doc.Info == nil {
+		return metav1.ObjectMeta{}
 	}
 
-	return httpRouteMatches, nil
+	kuadrantInfoExtension, err := utils.NewKuadrantOASInfoExtension(doc.Info)
+	if err != nil {
+		panic(err)
+	}
+
+	if kuadrantInfoExtension.Route == nil {
+		panic("info kuadrant extension route not found")
+	}
+
+	if kuadrantInfoExtension.Route.Name == nil {
+		panic("info kuadrant extension route name not found")
+	}
+
+	om := metav1.ObjectMeta{
+		Name:   *kuadrantInfoExtension.Route.Name,
+		Labels: kuadrantInfoExtension.Route.Labels,
+	}
+
+	if kuadrantInfoExtension.Route.Namespace != nil {
+		om.Namespace = *kuadrantInfoExtension.Route.Namespace
+	}
+
+	return om
 }
 
-func addRuleMatcherFromParams(params openapi3.Parameters, headers []gatewayapiv1beta1.HTTPHeaderMatch, queryParams []gatewayapiv1beta1.HTTPQueryParamMatch) ([]gatewayapiv1beta1.HTTPHeaderMatch, []gatewayapiv1beta1.HTTPQueryParamMatch) {
-	headerMatchType := gatewayapiv1beta1.HeaderMatchExact
-	queryParamMatchExact := gatewayapiv1beta1.QueryParamMatchExact
+func HTTPRouteGatewayParentRefsFromOAS(doc *openapi3.T) []gatewayapiv1beta1.ParentReference {
+	if doc.Info == nil {
+		return nil
+	}
 
-	for _, parameter := range params {
-		if !parameter.Value.Required {
-			continue
+	kuadrantInfoExtension, err := utils.NewKuadrantOASInfoExtension(doc.Info)
+	if err != nil {
+		panic(err)
+	}
+
+	if kuadrantInfoExtension.Route == nil {
+		panic("info kuadrant extension route not found")
+	}
+
+	return kuadrantInfoExtension.Route.ParentRefs
+}
+
+func HTTPRouteHostnamesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.Hostname {
+	if doc.Info == nil {
+		return nil
+	}
+
+	kuadrantInfoExtension, err := utils.NewKuadrantOASInfoExtension(doc.Info)
+	if err != nil {
+		panic(err)
+	}
+
+	if kuadrantInfoExtension.Route == nil {
+		panic("info kuadrant extension route not found")
+	}
+
+	return kuadrantInfoExtension.Route.Hostnames
+}
+
+func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
+	// Current implementation, one rule per operation
+	// TODO(eguzki): consider about grouping operations as HTTPRouteMatch objects in fewer HTTPRouteRule objects
+	rules := make([]gatewayapiv1beta1.HTTPRouteRule, 0)
+
+	basePath, err := utils.BasePathFromOpenAPI(doc)
+	if err != nil {
+		panic(err)
+	}
+
+	// Paths
+	for path, pathItem := range doc.Paths {
+		kuadrantPathExtension, err := utils.NewKuadrantOASPathExtension(pathItem)
+		if err != nil {
+			panic(err)
 		}
 
-		if parameter.Value.In == openapi3.ParameterInHeader {
-			headers = append(headers, gatewayapiv1beta1.HTTPHeaderMatch{
-				Type: &headerMatchType,
-				Name: gatewayapiv1beta1.HTTPHeaderName(parameter.Value.Name),
-			})
-		}
-		if parameter.Value.In == openapi3.ParameterInQuery {
-			queryParams = append(queryParams, gatewayapiv1beta1.HTTPQueryParamMatch{
-				Type: &queryParamMatchExact,
-				Name: parameter.Value.Name,
-			})
+		// Operations
+		for verb, operation := range pathItem.Operations() {
+			kuadrantOperationExtension, err := utils.NewKuadrantOASOperationExtension(operation)
+			if err != nil {
+				panic(err)
+			}
+
+			if ptr.Deref(kuadrantOperationExtension.Disable, kuadrantPathExtension.IsDisabled()) {
+				// not enabled for the operation
+				continue
+			}
+
+			// default backendrefs at the path level
+			backendRefs := kuadrantPathExtension.BackendRefs
+			if len(kuadrantOperationExtension.BackendRefs) > 0 {
+				backendRefs = kuadrantOperationExtension.BackendRefs
+			}
+
+			// default pathMatchType at the path level
+			pathMatchType := ptr.Deref(
+				kuadrantOperationExtension.PathMatchType,
+				kuadrantPathExtension.GetPathMatchType(),
+			)
+
+			rules = append(rules, buildHTTPRouteRule(basePath, path, pathItem, verb, operation, backendRefs, pathMatchType))
 		}
 	}
 
-	return headers, queryParams
+	if len(rules) == 0 {
+		return nil
+	}
+
+	return rules
+}
+
+func buildHTTPRouteRule(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, backendRefs []gatewayapiv1beta1.HTTPBackendRef, pathMatchType gatewayapiv1beta1.PathMatchType) gatewayapiv1beta1.HTTPRouteRule {
+	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op, pathMatchType)
+
+	return gatewayapiv1beta1.HTTPRouteRule{
+		BackendRefs: backendRefs,
+		Matches:     []gatewayapiv1beta1.HTTPRouteMatch{match},
+	}
 }

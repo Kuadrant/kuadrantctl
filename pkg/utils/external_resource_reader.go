@@ -16,17 +16,17 @@ limitations under the License.
 package utils
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 )
 
 // ReadExternalResource reads data streams from external resources. Currently implemented:
-// - '-' for STDIN
+// - '@' for STDIN
 // - URLs (HTTP[S])
 // - Files
 func ReadExternalResource(resource string) ([]byte, error) {
-	if resource == "-" {
-		return ioutil.ReadAll(os.Stdin)
+	if resource == "@" {
+		return io.ReadAll(os.Stdin)
 	}
 
 	if url, isURL := ParseURL(resource); isURL {
@@ -34,5 +34,5 @@ func ReadExternalResource(resource string) ([]byte, error) {
 	}
 
 	// Defaulting to filepath
-	return ioutil.ReadFile(resource)
+	return os.ReadFile(resource)
 }

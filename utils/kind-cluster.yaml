@@ -5,3 +5,9 @@ nodes:
 - role: control-plane
   # port forward 80 on the host to 80 on this node
   image: kindest/node:v1.27.3
+  # port forward 80 on the host to 80 on this node
+  extraPortMappings:
+    - containerPort: 30950
+      hostPort: 9080
+    - containerPort: 30951
+      hostPort: 9443

@@ -1,5 +1,5 @@
 ---
-openapi: "3.1.0"
+openapi: "3.0.3"
 info:
   title: "Pet Store API"
   version: "1.0.0"
@@ -13,49 +13,41 @@ info:
         - name: istio-ingressgateway
           namespace: istio-system
 servers:
-  - url: https://toplevel.example.io/v1
+  - url: https://example.io/api/v1
 paths:
   /cat:
-    get:  # No sec requirements
+    x-kuadrant:  ## Path level Kuadrant Extension
+      backendRefs:
+        - name: petstore
+          port: 80
+          namespace: petstore
+    get:  # Added to the route and public (not auth)
       operationId: "getCat"
       responses:
         405:
           description: "invalid input"
-    post:  # API key
+    post:  # NOT added to the route
+      x-kuadrant:  ## Operation level Kuadrant Extension
+        enable: false
       operationId: "postCat"
-      security:
-        - cat_api_key: []
       responses:
         405:
           description: "invalid input"
   /dog:
-    get:  # OIDC
+    get:  # Added to the route and authenticated
+      x-kuadrant:  ## Operation level Kuadrant Extension
+        backendRefs:
+          - name: petstore
+            port: 80
+            namespace: petstore
       operationId: "getDog"
       security:
-        - oidc:
-          - read:dogs
-      responses:
-        405:
-          description: "invalid input"
-  /snake:
-    get:  # OIDC or API key
-      operationId: "getSnake"
-      security:
-        - oidc: ["read:snakes"]
-        - snakes_api_key: []
+        - openIdConnect: []
       responses:
         405:
           description: "invalid input"
 components:
   securitySchemes:
-    cat_api_key:
-      type: apiKey
-      name: api_key
-      in: header
-    oidc:
+    openIdConnect:
       type: openIdConnect
       openIdConnectUrl: https://example.com/.well-known/openid-configuration
-    snakes_api_key:
-      type: apiKey
-      name: snake_token
-      in: query

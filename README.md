@@ -9,7 +9,7 @@ Use `go install` to install the latest version of the library. This command will
 ```
 go install github.com/kuadrant/kuadrantctl@latest
 ```
-> Golang 1.20+ required
+> Golang 1.21+ required
 
 ## Commands
 * [Install Kuadrant](doc/install.md)
