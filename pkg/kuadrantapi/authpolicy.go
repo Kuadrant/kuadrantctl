@@ -202,7 +202,7 @@ func buildOperationAuthentication(doc *openapi3.T, basePath, path string, pathIt
 }
 
 func apiKeyAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1beta1.PathMatchType, secSchemeName string, secScheme openapi3.SecurityScheme) kuadrantapiv1beta2.AuthenticationSpec {
-	// From https://github.com/Kuadrant/kuadrantctl/pull/46#issuecomment-1830278191
+	// From https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#fixed-fields-23
 	// secScheme.In is required
 	// secScheme.Name is required
 	credentials := authorinoapi.Credentials{}
