@@ -3,13 +3,16 @@ package kuadrantapi
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	authorinoapi "github.com/kuadrant/authorino/api/v1beta2"
 	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	"sigs.k8s.io/yaml"
 
 	"github.com/kuadrant/kuadrantctl/pkg/gatewayapi"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
@@ -217,6 +220,8 @@ func apiKeyAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem
 		credentials.Cookie = &authorinoapi.Named{Name: secScheme.Name}
 	}
 
+	printSecretSuggestion(basePath, path, verb, secScheme.Name)
+
 	return kuadrantapiv1beta2.AuthenticationSpec{
 		CommonAuthRuleSpec: kuadrantapiv1beta2.CommonAuthRuleSpec{
 			RouteSelectors: buildAuthPolicyRouteSelectors(basePath, path, pathItem, verb, op, pathMatchType),
@@ -251,4 +256,37 @@ func openIDAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem
 			},
 		},
 	}
+}
+
+func printSecretSuggestion(basePath, path, verb, secSchemeName string) {
+	// remove the last slash of the Base Path
+	sanitizedBasePath := utils.LastSlashRegexp.ReplaceAllString(basePath, "")
+
+	//  According OAS 3.0: path MUST begin with a slash
+	matchPath := fmt.Sprintf("%s%s", sanitizedBasePath, path)
+	fmt.Fprintln(os.Stderr, "======================================================================================================")
+	fmt.Fprintf(os.Stderr, "%s %s endpoint is protected with ApiKey. Consider creating secrets with valid tokens\n", verb, matchPath)
+	fmt.Fprintln(os.Stderr, "---")
+
+	secret := &corev1.Secret{
+		TypeMeta: metav1.TypeMeta{APIVersion: "v1", Kind: "Secret"},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: secSchemeName,
+			Labels: map[string]string{
+				"authorino.kuadrant.io/managed-by": "authorino",
+				APIKeySecretLabel:                  secSchemeName,
+			},
+		},
+		StringData: map[string]string{
+			"api_key": "MY_SECRET_TOKEN_VALUE",
+		},
+		Type: corev1.SecretTypeOpaque,
+	}
+
+	secretSerialized, err := yaml.Marshal(secret)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintln(os.Stderr, string(secretSerialized))
 }
