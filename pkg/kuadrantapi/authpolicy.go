@@ -220,7 +220,7 @@ func apiKeyAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem
 		credentials.Cookie = &authorinoapi.Named{Name: secScheme.Name}
 	}
 
-	printSecretSuggestion(basePath, path, verb, secScheme.Name)
+	printSecretSuggestion(basePath, path, verb, secSchemeName)
 
 	return kuadrantapiv1beta2.AuthenticationSpec{
 		CommonAuthRuleSpec: kuadrantapiv1beta2.CommonAuthRuleSpec{
