@@ -15,6 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes/scheme"
 
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+
 	kuadrantoperator "github.com/kuadrant/kuadrant-operator/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -73,6 +75,11 @@ func installRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if err := performDependencyChecks(k8sClient); err != nil {
+		logf.Log.Error(err, "Dependency checks failed")
+		return err
+	}
+
 	err = deployKuadrantOperator(k8sClient)
 	if err != nil {
 		return err
@@ -91,13 +98,46 @@ func installRun(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func checkCRDExistence(k8sClient client.Client, crdName, documentationURL string) error {
+	crd := &apiextensionsv1.CustomResourceDefinition{}
+	err := k8sClient.Get(context.Background(), types.NamespacedName{Name: crdName}, crd)
+	if err != nil {
+		logf.Log.Info(fmt.Sprintf("CRD %s not found. Please visit %s for installation instructions.", crdName, documentationURL))
+		return fmt.Errorf("dependency CRD %s is not installed. Please follow the installation guide at %s", crdName, documentationURL)
+	}
+	return nil
+}
+
+func performDependencyChecks(k8sClient client.Client) error {
+	var dependencyErrors []error
+
+	// Perform each check and collect errors
+	if err := checkCRDExistence(k8sClient, "gateways.networking.istio.io", "https://istio.io/latest/docs/setup/additional-setup/getting-started/"); err != nil {
+		dependencyErrors = append(dependencyErrors, err)
+	}
+	if err := checkCRDExistence(k8sClient, "gatewayclasses.gateway.networking.k8s.io", "https://gateway-api.sigs.k8s.io/guides/#installing-gateway-api"); err != nil {
+		dependencyErrors = append(dependencyErrors, err)
+	}
+	if err := checkCRDExistence(k8sClient, "certificates.cert-manager.io", "https://cert-manager.io/docs/installation/"); err != nil {
+		dependencyErrors = append(dependencyErrors, err)
+	}
+
+	// If any errors were collected, return an aggregated error
+	if len(dependencyErrors) > 0 {
+		return fmt.Errorf("dependency checks failed: %+v", dependencyErrors)
+	}
+
+	// If no errors were collected, return nil to indicate success
+	return nil
+}
+
 func waitForDeployments(k8sClient client.Client) error {
 	retryInterval := time.Second * 5
-	timeout := time.Minute * 2
+	timeout := time.Minute * 3
 
 	deploymentKeys := []types.NamespacedName{
 		types.NamespacedName{Name: "authorino", Namespace: installNamespace},
-		types.NamespacedName{Name: "limitador", Namespace: installNamespace},
+		types.NamespacedName{Name: "limitador-limitador", Namespace: installNamespace},
 	}
 
 	for _, key := range deploymentKeys {
