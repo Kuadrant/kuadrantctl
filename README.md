@@ -1,23 +1,151 @@
 # kuadrantctl
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-Kuadrant configuration command line utility
+`kuadrantctl` is a CLI tool for managing [Kuadrant](https://kuadrant.io/) configurations and resources.
 
 ## Installing
-Use `go install` to install the latest version of the library. This command will install the `kuadrantctl` binary executable in `$GOBIN` (defaulting to `$GOPATH/bin`).
 
-```
+`kuadrantctl` can be installed either by downloading pre-compiled binaries or by compiling from source. For most users, downloading the binary is the easiest and recommended method.
+
+### Installing Pre-compiled Binaries
+
+1. Download the latest binary for your platform from the [`kuadrantctl` Releases](https://github.com/Kuadrant/kuadrantctl/releases) page.
+2. Unpack the binary.
+3. Move it to a directory in your `$PATH` so that it can be executed from anywhere.
+
+### Compiling from Source
+
+If you prefer to compile from source or are contributing to the project, you can install `kuadrantctl` using `go install`. This method requires Golang 1.21 or newer.
+
+```bash
 go install github.com/kuadrant/kuadrantctl@latest
 ```
-> Golang 1.21+ required
+
+This command will compile `kuadrantctl` and install the binary executable in `$GOBIN` (defaulting to `$GOPATH/bin`).
+
+## Usage
+
+ Below is a high-level overview of its commands, along with links to detailed documentation for more complex commands.
+
+### General Syntax
+
+```bash
+kuadrantctl [command] [subcommand] [flags]
+```
+
+
+### Commands Overview
+
+| Command      | Description                                                |
+| ------------ | ---------------------------------------------------------- |
+| `completion` | Generate autocompletion scripts for the specified shell    |
+| `generate`   | Commands related to Kubernetes Gateway API and Kuadrant resource generation from OpenAPI 3.x specifications          |
+| `help`       | Help about any command                                     |
+| `install`    | Install the Kuadrant Operator with OLM to your Kuberenetes or OpenShift cluster                                         |
+| `uninstall`  | Uninstall Kuadrant Operator from a Kubernetes or OpenShift cluster                        |
+| `version`    | Print the version number of `kuadrantctl`                    |
+
+### Flags
+
+| Flag               | Description           |
+| ------------------ | --------------------- |
+| `-h`, `--help`     | Help for `kuadrantctl`  |
+| `-v`, `--verbose`  | Enable verbose output |
+
+### Commands Detail
+
+#### `completion`
+
+Generate an autocompletion script for the specified shell.
+
+| Subcommand   | Description                                 |
+| ------------ | ------------------------------------------- |
+| `bash`       | Generate script for Bash                    |
+| `fish`       | Generate script for Fish                    |
+| `powershell` | Generate script for PowerShell              |
+| `zsh`        | Generate script for Zsh                     |
+
+#### `generate`
+
+Commands related to Kubernetes Gateway API and Kuadrant resource generation from OpenAPI 3.x specifications.
+
+| Subcommand   | Description                                   |
+| ------------ | --------------------------------------------- |
+| `gatewayapi` | Generate Gateway API resources                |
+| `kuadrant`   | Generate Kuadrant resources                   |
+
+##### `generate gatewayapi`
+
+Generate Gateway API resources from an OpenAPI 3.x specification
+
+| Subcommand | Description                                      | Flags                             |
+| ---------- | ------------------------------------------------ | --------------------------------- |
+| `httproute`| Generate Gateway API HTTPRoute from OpenAPI 3.0.X| `--oas string` Path or URL to OpenAPI spec (required) |
+
+##### `generate kuadrant`
+
+Generate Kuadrant resources from an OpenAPI 3.x specification
+
+| Subcommand       | Description                                       | Flags                             |
+| ---------------- | ------------------------------------------------- | --------------------------------- |
+| `authpolicy`     | Generate a [Kuadrant AuthPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/auth/) from an OpenAPI 3.0.x specification   | `--oas string` Path or URL to OpenAPI spec (required) |
+| `ratelimitpolicy`| Generate [Kuadrant RateLimitPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/rate-limiting/) from an OpenAPI 3.0.x specification | `--oas string` Path or URL to OpenAPI spec (required) |
+
+
+#### `install`
+
+Install the [Kuadrant Operator](https://github.com/Kuadrant/kuadrant-operator) into an OLM-powered cluster.
+
+| Flag                  | Description                      |
+| --------------------- | -------------------------------- |
+| `--kubeconfig` string | Kubernetes configuration file    |
+
+* For more information of the Kuadrant Operator, see https://docs.kuadrant.io/kuadrant-operator/
+
+#### `uninstall`
+
+Remove Kuadrant from the cluster.
+
+| Flag                  | Description                      |
+| --------------------- | -------------------------------- |
+| `--kubeconfig` string | Kubernetes configuration file    |
+
+#### `version`
+
+Print the version number of `kuadrantctl`.
+
+No additional flags or subcommands.
+
+### Additional Guides
+
+#### Generating Gateway API HTTPRoute Objects
+
+- Generates [Gateway API HTTPRoute](https://gateway-api.sigs.k8s.io/v1alpha2/guides/http-routing/) objects from an OpenAPI Specification (OAS) 3.x.
+- Supports reading from a file, URL, or stdin.
+- Example usages and more information can be found in the [detailed guide](doc/generate-gateway-api-httproute.md).
+
+#### Generating Kuadrant AuthPolicy Objects
+
+- Generates [Kuadrant AuthPolicy](https://github.com/Kuadrant/kuadrant-operator/blob/v0.4.1/doc/auth.md) objects for managing API authentication.
+- Supports `openIdConnect` and `apiKey` types from the OpenAPI Security Scheme Object.
+- Example usages and more information can be found in the [detailed guide](doc/generate-kuadrant-auth-policy.md).
+
+#### Generating Kuadrant RateLimitPolicy Objects
+
+- Generates [Kuadrant RateLimitPolicy](https://github.com/Kuadrant/kuadrant-operator/blob/v0.4.1/doc/rate-limiting.md) objects for managing API rate limiting.
+- Supports reading from a file, URL, or stdin.
+- Example usages and more information can be found in the [detailed guide](doc/generate-kuadrant-rate-limit-policy.md).
+
+For more detailed information about each command, including options and usage examples, use `kuadrantctl [command] --help`.
+
 
 ## Using with GitHub Actions
 
 ```yaml
-      - name: Install kuadrantctl
-        uses: jaxxstorm/action-install-gh-release@v1.10.0
-        with: # Grab the latest version
-          repo: Kuadrant/kuadrantctl
+- name: Install kuadrantctl
+  uses: jaxxstorm/action-install-gh-release@v1.10.0
+  with: # Grab the latest version
+    repo: Kuadrant/kuadrantctl
 ```
 
 ## Commands
