@@ -97,7 +97,7 @@ func waitForDeployments(k8sClient client.Client) error {
 
 	deploymentKeys := []types.NamespacedName{
 		types.NamespacedName{Name: "authorino", Namespace: installNamespace},
-		types.NamespacedName{Name: "limitador", Namespace: installNamespace},
+		types.NamespacedName{Name: "limitador-limitador", Namespace: installNamespace},
 	}
 
 	for _, key := range deploymentKeys {
