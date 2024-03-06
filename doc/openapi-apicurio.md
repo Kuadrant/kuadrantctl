@@ -1,15 +1,24 @@
-## Using APICurio to edit an OpenAPI spec and visualise Kuadrant extensions
+## Using APICurio with Kuadrant OAS extensions
+
+[OpenAPI Extensions](https://swagger.io/docs/specification/openapi-extensions/) can
+be used to describe extra functionality beyond what is covered by the standard OpenAPI
+specification. They typically start with `x-`. Kuadrant OpenAPI extensions start with
+`x-kuadrant`, and allow you to configure Kuadrant policy information along side
+your API.
+
+APICurio Studio is a UI tool for visualising and editing OpenAPI specifications.
+It has support for visualising security and extensions defined in your spec.
 
 This guide assumes you have APICurio already running.
 See https://www.apicur.io/ for info on how to install APICurio Studio.
 
-### Editing the spec
+### Adding extensinos to the spec
 
 Open or import your OpenAPI spec in the APICurio UI.
 You can modify the source of the spec from the UI.
 There are a few different configuration and extension points supported by APICurio, and also supported by the `kuadrantctl` cli.
 
-To generate a HTTPRoute for the API, add the following `x-kuadrant` block to your spec, replacing values to match your APIs details and the location of your Gateway.
+To generate a [HTTPRoute](https://gateway-api.sigs.k8s.io/api-types/httproute/) for the API, add the following `x-kuadrant` block to your spec, replacing values to match your APIs details and the location of your Gateway.
 
 ```yaml
 info:
@@ -23,6 +32,7 @@ info:
                 -   name: prod-web
                     namespace: kuadrant-multi-cluster-gateways
                     kind: Gateway
+```
 
 When added, the UI will show this in the Vendor Extensions section:
 
@@ -30,8 +40,9 @@ When added, the UI will show this in the Vendor Extensions section:
 
 See [this guide](./generate-gateway-api-httproute.md) for more info on generating a HTTPRoute.
 
-Add a `securityScheme` to the components block so that an AuthPolicy can be generated.
+To generate an [AuthPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/auth/), add a `securityScheme` to the components block.
 This `securityScheme` requires that an API key header is set.
+Although securityScheme is not an OpenAPI extension, it is used by `kuadrantctl` like the other extensions mentioned here.
 
 ```yaml
     securitySchemes:
@@ -47,7 +58,7 @@ When added, the UI will display this in the security requirements section:
 
 See [this guide](./generate-kuadrant-auth-policy.md) for more info on generating an AuthPolicy.
 
-To generate a RateLimitPolicy for the API, add the following `x-kuadrant` block to a path in your spec,
+To generate a [RateLimitPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/rate-limiting/) for the API, add the following `x-kuadrant` block to a path in your spec,
 replacing values to match your APIs details.
 
 ```yaml
