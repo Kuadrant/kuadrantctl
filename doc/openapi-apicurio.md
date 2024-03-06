@@ -1,4 +1,4 @@
-## Usin APICurio to edit an OpenAPI spec and visualise Kuadrant extensions
+## Using APICurio to edit an OpenAPI spec and visualise Kuadrant extensions
 
 This guide assumes you have APICurio already running.
 See https://www.apicur.io/ for info on how to install APICurio Studio.
