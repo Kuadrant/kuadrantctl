@@ -17,16 +17,12 @@ info:
         route:
             name: petstore
             namespace: petstore
-            labels:
-                deployment: petstore
-                owner: jbloggs
             hostnames:
                 - 'petstore.example.com'
             parentRefs:
                 -   name: prod-web
                     namespace: kuadrant-multi-cluster-gateways
                     kind: Gateway
-```
 
 When added, the UI will show this in the Vendor Extensions section:
 
