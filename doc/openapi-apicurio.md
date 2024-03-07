@@ -18,7 +18,7 @@ Open or import your OpenAPI spec in the APICurio UI.
 You can modify the source of the spec from the UI.
 There are a few different configuration and extension points supported by APICurio, and also supported by the `kuadrantctl` cli.
 
-To generate a [HTTPRoute](https://gateway-api.sigs.k8s.io/api-types/httproute/) for the API, add the following `x-kuadrant` block to your spec, replacing values to match your APIs details and the location of your Gateway.
+To generate a [HTTPRoute](https://gateway-api.sigs.k8s.io/api-types/httproute/) for the API, add the following `x-kuadrant` block to your spec in the UI, replacing values to match your APIs details and the location of your Gateway.
 
 ```yaml
 info:
@@ -33,10 +33,6 @@ info:
                     namespace: kuadrant-multi-cluster-gateways
                     kind: Gateway
 ```
-
-When added, the UI will show this in the Vendor Extensions section:
-
-![APICurio HTTPRoute Vendor Extension](./images/apicurio-vendor-extension-backend.png)
 
 See [this guide](./generate-gateway-api-httproute.md) for more info on generating a HTTPRoute.
 
