@@ -1,13 +1,12 @@
 ## Generate Kuadrant RateLimitPolicy object from OpenAPI 3
 
-The `kuadrantctl generate kuadrant ratelimitpolicy` command generates an [Kuadrant RateLimitPolicy](https://github.com/Kuadrant/kuadrant-operator/blob/v0.4.1/doc/rate-limiting.md)
-from your [OpenAPI Specification (OAS) 3.x](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md) powered with [kuadrant extensions](openapi-kuadrant-extensions.md).
+The `kuadrantctl generate kuadrant ratelimitpolicy` command generates an [Kuadrant RateLimitPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/rate-limiting/)
+from your [OpenAPI Specification (OAS) 3.x](https://spec.openapis.org/oas/latest.html) powered with [kuadrant extensions](openapi-kuadrant-extensions.md).
 
 ### OpenAPI specification
 
-[OpenAPI `v3.0`](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md)
+An OpenAPI document resource can be provided to the cli by one of the following channels:
 
-OpenAPI document resource can be provided by one of the following channels:
 * Filename in the available path.
 * URL format (supported schemes are HTTP and HTTPS). The CLI will try to download from the given address.
 * Read from stdin standard input stream.

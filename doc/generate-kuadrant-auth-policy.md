@@ -1,18 +1,17 @@
 ## Generate Kuadrant AuthPolicy object from OpenAPI 3
 
-The `kuadrantctl generate kuadrant authpolicy` command generates an [Kuadrant AuthPolicy](https://github.com/Kuadrant/kuadrant-operator/blob/v0.4.1/doc/auth.md)
-from your [OpenAPI Specification (OAS) 3.x](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md) powered with [kuadrant extensions](openapi-kuadrant-extensions.md).
+The `kuadrantctl generate kuadrant authpolicy` command generates an [Kuadrant AuthPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/auth/)
+from your [OpenAPI Specification (OAS) 3.x](https://spec.openapis.org/oas/latest.html) powered with [kuadrant extensions](openapi-kuadrant-extensions.md).
 
 ### OpenAPI specification
 
-[OpenAPI `v3.0`](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md)
+An OpenAPI document resource can be provided to the cli by one of the following channels:
 
-OpenAPI document resource can be provided by one of the following channels:
 * Filename in the available path.
 * URL format (supported schemes are HTTP and HTTPS). The CLI will try to download from the given address.
 * Read from stdin standard input stream.
 
-OpenAPI [Security Scheme Object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#security-scheme-object) types
+OpenAPI [Security Scheme Object](https://spec.openapis.org/oas/latest.html#security-scheme-object) types
 
 | Types | Implemented |
 | --- | --- |
@@ -415,7 +414,7 @@ curl  -H "Host: example.com" -H "api_key: I_LIKE_SNAKES" -X POST -i "http://127.
 ```
 
 ```
-TTP/1.1 401 Unauthorized
+HTTP/1.1 401 Unauthorized
 www-authenticate: Bearer realm="getDog_oidc"
 www-authenticate: Bearer realm="getSnake_oidc"
 www-authenticate: snake_token realm="getSnake_snakes_api_key"
