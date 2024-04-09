@@ -1,4 +1,4 @@
-## Using APICurio with Kuadrant OAS extensions
+## Using Apicurio with Kuadrant OAS extensions
 
 [OpenAPI Extensions](https://swagger.io/docs/specification/openapi-extensions/) can
 be used to describe extra functionality beyond what is covered by the standard OpenAPI
@@ -6,17 +6,17 @@ specification. They typically start with `x-`. Kuadrant OpenAPI extensions start
 `x-kuadrant`, and allow you to configure Kuadrant policy information along side
 your API.
 
-APICurio Studio is a UI tool for visualising and editing OpenAPI specifications.
+Apicurio Studio is a UI tool for visualising and editing OpenAPI specifications.
 It has support for visualising security and extensions defined in your spec.
 
-This guide assumes you have APICurio already running.
-See https://www.apicur.io/ for info on how to install APICurio Studio.
+This guide assumes you have Apicurio Studio already running.
+See https://www.apicur.io/studio/ for info on how to install Apicurio Studio.
 
-### Adding extensinos to the spec
+### Adding extensions to the spec
 
-Open or import your OpenAPI spec in the APICurio UI.
+Open or import your OpenAPI spec in the Apicurio Studio UI.
 You can modify the source of the spec from the UI.
-There are a few different configuration and extension points supported by APICurio, and also supported by the `kuadrantctl` cli.
+There are a few different configuration and extension points supported by Apicurio Studio, and also supported by the `kuadrantctl` cli.
 
 To generate a [HTTPRoute](https://gateway-api.sigs.k8s.io/api-types/httproute/) for the API, add the following `x-kuadrant` block to your spec in the UI, replacing values to match your APIs details and the location of your Gateway.
 
@@ -50,7 +50,7 @@ Although securityScheme is not an OpenAPI extension, it is used by `kuadrantctl`
 
 When added, the UI will display this in the security requirements section:
 
-![APICurio security requirements](./images/apicurio-security-scheme-apikey.png)
+![Apicurio security requirements](./images/apicurio-security-scheme-apikey.png)
 
 See [this guide](./generate-kuadrant-auth-policy.md) for more info on generating an AuthPolicy.
 
@@ -76,7 +76,7 @@ paths:
 
 When added, the UI will show this in Vendor Extensions section for that specific path:
 
-![APICurio RateLimitPolicy Vendor Extension](./images/apicurio-vendor-extension-backend-rate-limit.png)
+![Apicurio RateLimitPolicy Vendor Extension](./images/apicurio-vendor-extension-backend-rate-limit.png)
 
 See [this guide](./generate-kuadrant-rate-limit-policy.md) for more info on generating a RateLimitPoliicy.
 There is also the full [kuadrantctl guide](./openapi-kuadrant-extensions.md).
