@@ -8,6 +8,7 @@ import (
 	"github.com/kuadrant/kuadrantctl/pkg/gatewayapi"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 )
@@ -23,11 +24,24 @@ func generateGatewayApiHttpRouteCommand() *cobra.Command {
 		Use:   "httproute",
 		Short: "Generate Gateway API HTTPRoute from OpenAPI 3.0.X",
 		Long:  "Generate Gateway API HTTPRoute from OpenAPI 3.0.X",
-		RunE:  runGenerateGatewayApiHttpRoute,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			outputFormat, err := cmd.Flags().GetString("output-format")
+			if err != nil {
+				return err
+			}
+
+			oasPath, err := cmd.Flags().GetString("oas")
+			if err != nil {
+				return err
+			}
+
+			return runGenerateGatewayApiHttpRoute(cmd, oasPath, outputFormat)
+		},
 	}
 
 	// OpenAPI ref
 	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)")
+	cmd.Flags().StringP("output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
 	err := cmd.MarkFlagRequired("oas")
 	if err != nil {
 		panic(err)
@@ -36,8 +50,8 @@ func generateGatewayApiHttpRouteCommand() *cobra.Command {
 	return cmd
 }
 
-func runGenerateGatewayApiHttpRoute(cmd *cobra.Command, args []string) error {
-	oasDataRaw, err := utils.ReadExternalResource(generateGatewayAPIHTTPRouteOAS)
+func runGenerateGatewayApiHttpRoute(cmd *cobra.Command, oasPath, outputFormat string) error {
+	oasDataRaw, err := utils.ReadExternalResource(oasPath)
 	if err != nil {
 		return err
 	}
@@ -55,12 +69,17 @@ func runGenerateGatewayApiHttpRoute(cmd *cobra.Command, args []string) error {
 
 	httpRoute := buildHTTPRoute(doc)
 
-	jsonData, err := json.Marshal(httpRoute)
+	var outputBytes []byte
+	if outputFormat == "json" {
+		outputBytes, err = json.Marshal(httpRoute)
+	} else { // default to YAML if not explicitly JSON
+		outputBytes, err = yaml.Marshal(httpRoute)
+	}
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintln(cmd.OutOrStdout(), string(jsonData))
+	fmt.Fprintln(cmd.OutOrStdout(), string(outputBytes))
 	return nil
 }
 
