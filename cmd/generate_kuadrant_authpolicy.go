@@ -27,7 +27,7 @@ func generateKuadrantAuthPolicyCommand() *cobra.Command {
 	}
 
 	// OpenAPI ref
-	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "/path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR @ (required)")
+	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)")
 	err := cmd.MarkFlagRequired("oas")
 	if err != nil {
 		panic(err)
