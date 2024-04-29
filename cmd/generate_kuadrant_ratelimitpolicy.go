@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
@@ -19,13 +20,11 @@ import (
 
 //kuadrantctl generate kuadrant ratelimitpolicy --oas [OAS_FILE_PATH | OAS_URL | @]
 
-// var outputFormat string
-
 func generateKuadrantRateLimitPolicyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ratelimitpolicy",
-		Short: "Generate Kuadrant RateLimitPolicy from OpenAPI 3.0.X",
-		Long:  "Generate Kuadrant RateLimitPolicy from OpenAPI 3.0.X",
+		Short: "Generate Kuadrant Rate Limit Policy from OpenAPI 3.0.X",
+		Long:  "Generate Kuadrant Rate Limit Policy from OpenAPI 3.0.X",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			outputFormat, err := cmd.Flags().GetString("output-format")
 			if err != nil {
@@ -43,7 +42,11 @@ func generateKuadrantRateLimitPolicyCommand() *cobra.Command {
 
 	cmd.Flags().String("oas", "", "Path to OpenAPI spec file (in JSON or YAML format) or URL (required)")
 	cmd.Flags().StringP("output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
-	cmd.MarkFlagRequired("oas")
+
+	if err := cmd.MarkFlagRequired("oas"); err != nil {
+		fmt.Println("Error setting 'oas' flag as required:", err)
+		os.Exit(1)
+	}
 
 	return cmd
 }
