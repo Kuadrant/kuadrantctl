@@ -3,10 +3,12 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gatewayapiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
@@ -18,26 +20,32 @@ import (
 
 //kuadrantctl generate kuadrant ratelimitpolicy --oas [OAS_FILE_PATH | OAS_URL | @]
 
+var (
+	generateRateLimitPolicyOAS    string
+	generateRateLimitPolicyFormat string
+)
+
 func generateKuadrantRateLimitPolicyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ratelimitpolicy",
-		Short: "Generate Kuadrant RateLimitPolicy from OpenAPI 3.0.X",
-		Long:  "Generate Kuadrant RateLimitPolicy from OpenAPI 3.0.X",
+		Short: "Generate Kuadrant Rate Limit Policy from OpenAPI 3.0.X",
+		Long:  "Generate Kuadrant Rate Limit Policy from OpenAPI 3.0.X",
 		RunE:  runGenerateKuadrantRateLimitPolicy,
 	}
 
-	// OpenAPI ref
-	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "/path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR @ (required)")
-	err := cmd.MarkFlagRequired("oas")
-	if err != nil {
-		panic(err)
+	cmd.Flags().StringVar(&generateRateLimitPolicyOAS, "oas", "", "Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)")
+	cmd.Flags().StringVarP(&generateRateLimitPolicyFormat, "output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
+
+	if err := cmd.MarkFlagRequired("oas"); err != nil {
+		fmt.Println("Error setting 'oas' flag as required:", err)
+		os.Exit(1)
 	}
 
 	return cmd
 }
 
 func runGenerateKuadrantRateLimitPolicy(cmd *cobra.Command, args []string) error {
-	oasDataRaw, err := utils.ReadExternalResource(generateGatewayAPIHTTPRouteOAS)
+	oasDataRaw, err := utils.ReadExternalResource(generateRateLimitPolicyOAS)
 	if err != nil {
 		return err
 	}
@@ -55,12 +63,17 @@ func runGenerateKuadrantRateLimitPolicy(cmd *cobra.Command, args []string) error
 
 	rlp := buildRateLimitPolicy(doc)
 
-	jsonData, err := json.Marshal(rlp)
+	var outputBytes []byte
+	if generateRateLimitPolicyFormat == "json" {
+		outputBytes, err = json.Marshal(rlp)
+	} else { // default to YAML if not explicitly JSON
+		outputBytes, err = yaml.Marshal(rlp)
+	}
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintln(cmd.OutOrStdout(), string(jsonData))
+	fmt.Fprintln(cmd.OutOrStdout(), string(outputBytes))
 	return nil
 }
 

@@ -80,7 +80,7 @@ Generate Gateway API resources from an OpenAPI 3.x specification
 
 | Subcommand | Description                                      | Flags                             |
 | ---------- | ------------------------------------------------ | --------------------------------- |
-| `httproute`| Generate Gateway API HTTPRoute from OpenAPI 3.0.X| `--oas string` Path or URL to OpenAPI spec (required) |
+| `httproute`| Generate Gateway API HTTPRoute from OpenAPI 3.0.X| `--oas string` Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required). `-o` Output format: 'yaml' or 'json'. Default: yaml |
 
 ##### `generate kuadrant`
 
@@ -88,8 +88,8 @@ Generate Kuadrant resources from an OpenAPI 3.x specification
 
 | Subcommand       | Description                                       | Flags                             |
 | ---------------- | ------------------------------------------------- | --------------------------------- |
-| `authpolicy`     | Generate a [Kuadrant AuthPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/auth/) from an OpenAPI 3.0.x specification   | `--oas string` Path or URL to OpenAPI spec (required) |
-| `ratelimitpolicy`| Generate [Kuadrant RateLimitPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/rate-limiting/) from an OpenAPI 3.0.x specification | `--oas string` Path or URL to OpenAPI spec (required) |
+| `authpolicy`     | Generate a [Kuadrant AuthPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/auth/) from an OpenAPI 3.0.x specification   | `--oas string` Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required). `-o` Output format: 'yaml' or 'json'. Default: yaml |
+| `ratelimitpolicy`| Generate [Kuadrant RateLimitPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/rate-limiting/) from an OpenAPI 3.0.x specification | `--oas string` Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required). `-o` Output format: 'yaml' or 'json'. Default: yaml |
 
 
 #### `install`

@@ -7,6 +7,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gatewayapiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
@@ -14,6 +15,11 @@ import (
 	"github.com/kuadrant/kuadrantctl/pkg/gatewayapi"
 	"github.com/kuadrant/kuadrantctl/pkg/kuadrantapi"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
+)
+
+var (
+	generateAuthPolicyOAS    string
+	generateAuthPolicyFormat string
 )
 
 //kuadrantctl generate kuadrant authpolicy --oas [OAS_FILE_PATH | OAS_URL | @]
@@ -27,7 +33,8 @@ func generateKuadrantAuthPolicyCommand() *cobra.Command {
 	}
 
 	// OpenAPI ref
-	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "/path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR @ (required)")
+	cmd.Flags().StringVar(&generateAuthPolicyOAS, "oas", "", "Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)")
+	cmd.Flags().StringVarP(&generateAuthPolicyFormat, "output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
 	err := cmd.MarkFlagRequired("oas")
 	if err != nil {
 		panic(err)
@@ -37,7 +44,7 @@ func generateKuadrantAuthPolicyCommand() *cobra.Command {
 }
 
 func runGenerateKuadrantAuthPolicy(cmd *cobra.Command, args []string) error {
-	oasDataRaw, err := utils.ReadExternalResource(generateGatewayAPIHTTPRouteOAS)
+	oasDataRaw, err := utils.ReadExternalResource(generateAuthPolicyOAS)
 	if err != nil {
 		return err
 	}
@@ -55,12 +62,17 @@ func runGenerateKuadrantAuthPolicy(cmd *cobra.Command, args []string) error {
 
 	ap := buildAuthPolicy(doc)
 
-	jsonData, err := json.Marshal(ap)
+	var outputBytes []byte
+	if generateAuthPolicyFormat == "json" {
+		outputBytes, err = json.Marshal(ap)
+	} else { // default to YAML if not explicitly JSON
+		outputBytes, err = yaml.Marshal(ap)
+	}
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintln(cmd.OutOrStdout(), string(jsonData))
+	fmt.Fprintln(cmd.OutOrStdout(), string(outputBytes))
 	return nil
 }
 

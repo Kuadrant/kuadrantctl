@@ -8,12 +8,14 @@ import (
 	"github.com/kuadrant/kuadrantctl/pkg/gatewayapi"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 )
 
 var (
-	generateGatewayAPIHTTPRouteOAS string
+	generateGatewayAPIHTTPRouteOAS    string
+	generateGatewayAPIHTTPRouteFormat string
 )
 
 //kuadrantctl generate gatewayapi httproute --oas [OAS_FILE_PATH | OAS_URL | @]
@@ -27,7 +29,8 @@ func generateGatewayApiHttpRouteCommand() *cobra.Command {
 	}
 
 	// OpenAPI ref
-	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "/path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR @ (required)")
+	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)")
+	cmd.Flags().StringVarP(&generateGatewayAPIHTTPRouteFormat, "output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
 	err := cmd.MarkFlagRequired("oas")
 	if err != nil {
 		panic(err)
@@ -55,12 +58,17 @@ func runGenerateGatewayApiHttpRoute(cmd *cobra.Command, args []string) error {
 
 	httpRoute := buildHTTPRoute(doc)
 
-	jsonData, err := json.Marshal(httpRoute)
+	var outputBytes []byte
+	if generateGatewayAPIHTTPRouteFormat == "json" {
+		outputBytes, err = json.Marshal(httpRoute)
+	} else { // default to YAML if not explicitly JSON
+		outputBytes, err = yaml.Marshal(httpRoute)
+	}
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintln(cmd.OutOrStdout(), string(jsonData))
+	fmt.Fprintln(cmd.OutOrStdout(), string(outputBytes))
 	return nil
 }
 

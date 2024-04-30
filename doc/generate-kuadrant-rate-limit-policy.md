@@ -21,7 +21,8 @@ Usage:
 
 Flags:
   -h, --help         help for ratelimitpolicy
-      --oas string   /path/to/file.[json|yaml|yml] OR http[s]://domain/resource/path.[json|yaml|yml] OR @ (required)
+  --oas string        Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)
+  -o Output format:   'yaml' or 'json'. Default: yaml
 
 Global Flags:
   -v, --verbose   verbose output
