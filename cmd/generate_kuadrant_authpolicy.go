@@ -17,6 +17,11 @@ import (
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
 
+var (
+	generateAuthPolicyOAS    string
+	generateAuthPolicyFormat string
+)
+
 //kuadrantctl generate kuadrant authpolicy --oas [OAS_FILE_PATH | OAS_URL | @]
 
 func generateKuadrantAuthPolicyCommand() *cobra.Command {
@@ -24,24 +29,12 @@ func generateKuadrantAuthPolicyCommand() *cobra.Command {
 		Use:   "authpolicy",
 		Short: "Generate Kuadrant AuthPolicy from OpenAPI 3.0.X",
 		Long:  "Generate Kuadrant AuthPolicy from OpenAPI 3.0.X",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			outputFormat, err := cmd.Flags().GetString("output-format")
-			if err != nil {
-				return err
-			}
-
-			oasPath, err := cmd.Flags().GetString("oas")
-			if err != nil {
-				return err
-			}
-
-			return runGenerateKuadrantAuthPolicy(cmd, oasPath, outputFormat)
-		},
+		RunE:  runGenerateKuadrantAuthPolicy,
 	}
 
 	// OpenAPI ref
-	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)")
-	cmd.Flags().StringP("output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
+	cmd.Flags().StringVar(&generateAuthPolicyOAS, "oas", "", "Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)")
+	cmd.Flags().StringVarP(&generateAuthPolicyFormat, "output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
 	err := cmd.MarkFlagRequired("oas")
 	if err != nil {
 		panic(err)
@@ -50,8 +43,8 @@ func generateKuadrantAuthPolicyCommand() *cobra.Command {
 	return cmd
 }
 
-func runGenerateKuadrantAuthPolicy(cmd *cobra.Command, oasPath, outputFormat string) error {
-	oasDataRaw, err := utils.ReadExternalResource(oasPath)
+func runGenerateKuadrantAuthPolicy(cmd *cobra.Command, args []string) error {
+	oasDataRaw, err := utils.ReadExternalResource(generateAuthPolicyOAS)
 	if err != nil {
 		return err
 	}
@@ -70,7 +63,7 @@ func runGenerateKuadrantAuthPolicy(cmd *cobra.Command, oasPath, outputFormat str
 	ap := buildAuthPolicy(doc)
 
 	var outputBytes []byte
-	if outputFormat == "json" {
+	if generateAuthPolicyFormat == "json" {
 		outputBytes, err = json.Marshal(ap)
 	} else { // default to YAML if not explicitly JSON
 		outputBytes, err = yaml.Marshal(ap)

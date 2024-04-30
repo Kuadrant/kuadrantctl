@@ -20,28 +20,21 @@ import (
 
 //kuadrantctl generate kuadrant ratelimitpolicy --oas [OAS_FILE_PATH | OAS_URL | @]
 
+var (
+	generateRateLimitPolicyOAS    string
+	generateRateLimitPolicyFormat string
+)
+
 func generateKuadrantRateLimitPolicyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ratelimitpolicy",
 		Short: "Generate Kuadrant Rate Limit Policy from OpenAPI 3.0.X",
 		Long:  "Generate Kuadrant Rate Limit Policy from OpenAPI 3.0.X",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			outputFormat, err := cmd.Flags().GetString("output-format")
-			if err != nil {
-				return err
-			}
-
-			oasPath, err := cmd.Flags().GetString("oas")
-			if err != nil {
-				return err
-			}
-
-			return runGenerateKuadrantRateLimitPolicy(cmd, oasPath, outputFormat)
-		},
+		RunE:  runGenerateKuadrantRateLimitPolicy,
 	}
 
-	cmd.Flags().String("oas", "", "Path to OpenAPI spec file (in JSON or YAML format) or URL (required)")
-	cmd.Flags().StringP("output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
+	cmd.Flags().StringVar(&generateRateLimitPolicyOAS, "oas", "", "Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)")
+	cmd.Flags().StringVarP(&generateRateLimitPolicyFormat, "output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
 
 	if err := cmd.MarkFlagRequired("oas"); err != nil {
 		fmt.Println("Error setting 'oas' flag as required:", err)
@@ -51,8 +44,8 @@ func generateKuadrantRateLimitPolicyCommand() *cobra.Command {
 	return cmd
 }
 
-func runGenerateKuadrantRateLimitPolicy(cmd *cobra.Command, oasPath, outputFormat string) error {
-	oasDataRaw, err := utils.ReadExternalResource(oasPath)
+func runGenerateKuadrantRateLimitPolicy(cmd *cobra.Command, args []string) error {
+	oasDataRaw, err := utils.ReadExternalResource(generateRateLimitPolicyOAS)
 	if err != nil {
 		return err
 	}
@@ -71,7 +64,7 @@ func runGenerateKuadrantRateLimitPolicy(cmd *cobra.Command, oasPath, outputForma
 	rlp := buildRateLimitPolicy(doc)
 
 	var outputBytes []byte
-	if outputFormat == "json" {
+	if generateRateLimitPolicyFormat == "json" {
 		outputBytes, err = json.Marshal(rlp)
 	} else { // default to YAML if not explicitly JSON
 		outputBytes, err = yaml.Marshal(rlp)

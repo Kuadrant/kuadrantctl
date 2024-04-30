@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	generateGatewayAPIHTTPRouteOAS string
+	generateGatewayAPIHTTPRouteOAS    string
+	generateGatewayAPIHTTPRouteFormat string
 )
 
 //kuadrantctl generate gatewayapi httproute --oas [OAS_FILE_PATH | OAS_URL | @]
@@ -24,24 +25,12 @@ func generateGatewayApiHttpRouteCommand() *cobra.Command {
 		Use:   "httproute",
 		Short: "Generate Gateway API HTTPRoute from OpenAPI 3.0.X",
 		Long:  "Generate Gateway API HTTPRoute from OpenAPI 3.0.X",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			outputFormat, err := cmd.Flags().GetString("output-format")
-			if err != nil {
-				return err
-			}
-
-			oasPath, err := cmd.Flags().GetString("oas")
-			if err != nil {
-				return err
-			}
-
-			return runGenerateGatewayApiHttpRoute(cmd, oasPath, outputFormat)
-		},
+		RunE:  runGenerateGatewayApiHttpRoute,
 	}
 
 	// OpenAPI ref
 	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)")
-	cmd.Flags().StringP("output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
+	cmd.Flags().StringVarP(&generateGatewayAPIHTTPRouteFormat, "output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
 	err := cmd.MarkFlagRequired("oas")
 	if err != nil {
 		panic(err)
@@ -50,8 +39,8 @@ func generateGatewayApiHttpRouteCommand() *cobra.Command {
 	return cmd
 }
 
-func runGenerateGatewayApiHttpRoute(cmd *cobra.Command, oasPath, outputFormat string) error {
-	oasDataRaw, err := utils.ReadExternalResource(oasPath)
+func runGenerateGatewayApiHttpRoute(cmd *cobra.Command, args []string) error {
+	oasDataRaw, err := utils.ReadExternalResource(generateGatewayAPIHTTPRouteOAS)
 	if err != nil {
 		return err
 	}
@@ -70,7 +59,7 @@ func runGenerateGatewayApiHttpRoute(cmd *cobra.Command, oasPath, outputFormat st
 	httpRoute := buildHTTPRoute(doc)
 
 	var outputBytes []byte
-	if outputFormat == "json" {
+	if generateGatewayAPIHTTPRouteFormat == "json" {
 		outputBytes, err = json.Marshal(httpRoute)
 	} else { // default to YAML if not explicitly JSON
 		outputBytes, err = yaml.Marshal(httpRoute)
