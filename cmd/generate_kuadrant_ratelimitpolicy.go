@@ -6,9 +6,10 @@ import (
 	"os"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/ghodss/yaml"
+
 	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gatewayapiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
@@ -63,14 +64,19 @@ func runGenerateKuadrantRateLimitPolicy(cmd *cobra.Command, args []string) error
 
 	rlp := buildRateLimitPolicy(doc)
 
-	var outputBytes []byte
-	if generateRateLimitPolicyFormat == "json" {
-		outputBytes, err = json.Marshal(rlp)
-	} else { // default to YAML if not explicitly JSON
-		outputBytes, err = yaml.Marshal(rlp)
-	}
+	jsonBytes, err := json.Marshal(rlp)
 	if err != nil {
 		return err
+	}
+
+	var outputBytes []byte
+	if generateRateLimitPolicyFormat == "json" {
+		outputBytes = jsonBytes
+	} else {
+		outputBytes, err = yaml.JSONToYAML(jsonBytes) // use `omitempty`'s from the json Marshal
+		if err != nil {
+			return err
+		}
 	}
 
 	fmt.Fprintln(cmd.OutOrStdout(), string(outputBytes))
