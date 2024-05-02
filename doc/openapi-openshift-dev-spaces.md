@@ -30,7 +30,7 @@ For this tutorial, we'll:
 To install `kuadrantctl` in your Dev Spaces workspace, execute the following command:
 
 ```bash
-curl -sL "https://github.com/kuadrant/kuadrantctl/releases/download/v0.2.0/kuadrantctl-v0.2.0-linux-amd64.tar.gz" | tar xz -C /home/user/.local/bin
+curl -sL "https://github.com/kuadrant/kuadrantctl/releases/download/v0.2.2/kuadrantctl-v0.2.2-linux-amd64.tar.gz" | tar xz -C /home/user/.local/bin
 ```
 
 This will place `kuadrantctl` in `/home/user/.local/bin`, which is included in the container's `$PATH` by default.
@@ -199,10 +199,10 @@ With our extensions in place, let's use `kuadrantctl` to generate some Kubernete
 - An `AuthPolicy` with a simple, static API key from a secret for the `/user/login` endpoint
 - A `RateLimitPolicy` with a rate limit of 10 requests every 10 seconds for the `/store/inventory` endpoint
 
-Open a new terminal in Dev Spaces, and run the following.
+Open a new terminal in Dev Spaces (`☰` > `Terminal` > `New Terminal`), and run the following:
 
 ```bash
-kuadrantctl generate gatewayapi httproute --oas openapi.yaml | yq -y
+kuadrantctl generate gatewayapi httproute --oas openapi.yaml
 ```
 
 Outputs:
@@ -256,13 +256,14 @@ status:
 
 
 ```bash
-kuadrantctl generate kuadrant authpolicy --oas openapi.yaml  | yq -y
+kuadrantctl generate kuadrant authpolicy --oas openapi.yaml
 ```
 
 Outputs:
 
 ```yaml
 apiVersion: kuadrant.io/v1beta2
+kind: AuthPolicy
 metadata:
   name: petstore
   namespace: petstore
@@ -302,13 +303,14 @@ status: {}
 
 
 ```bash
-kuadrantctl generate kuadrant ratelimitpolicy --oas openapi.yaml  | yq -y
+kuadrantctl generate kuadrant ratelimitpolicy --oas openapi.yaml
 ```
 
 Outputs:
 
 ```yaml
 apiVersion: kuadrant.io/v1beta2
+kind: RateLimitPolicy
 metadata:
   name: petstore
   namespace: petstore
@@ -336,7 +338,20 @@ spec:
 status: {}
 ```
 
-You can now apply these policies to a running app via `kubectl` or `oc`.
+## Applying resources
+
+> **Note:** by default, `oc` and `kubectl` in Dev Spaces will target the cluster running Dev Spaces. If you want to apply resources to another cluster, you will need to login with `oc` or `kubectl` to another cluster, and pass a different `--context` to these to apply resources to another cluster.
+
+You can now apply these policies to a running app via `kubectl` or `oc`. If Dev Spaces is running on a cluster where Kuadrant is also installed, you can apply these resources:
+
+
+```bash
+kuadrantctl generate gatewayapi httproute --oas openapi.yaml | kubectl apply -f -
+kuadrantctl generate kuadrant authpolicy --oas openapi.yaml | kubectl apply -f -
+kuadrantctl generate kuadrant ratelimitpolicy --oas openapi.yaml | kubectl apply -f -
+```
+
+Alternatively, `kuadrantctl` can be used as part of a CI/CD pipeline. See the [kuadrantctl CI/CD guide](./kuadrantctl-ci-cd.md) for more details.
 
 If you've completed the optional `git` configuration step above, you can now `git commit` the changes above and push these to your fork.
 
@@ -348,4 +363,4 @@ Here are some extra documentation on using `x-kuadrant` OAS extensions with `kua
 - [Generating Gateway API HTTPRoutes with `kuadrantctl`](./generate-gateway-api-httproute.md)
 - [Generating Kuadrant AuthPolicy with `kuadrantctl`](./generate-kuadrant-auth-policy.md)
 - [Generate Kuadrant RateLimitPolicy with `kuadrantctl`](./generate-kuadrant-rate-limit-policy.md)
-
+- [`kuadrantctl` CI/CD guide](./kuadrantctl-ci-cd.md)
