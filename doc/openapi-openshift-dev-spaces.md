@@ -346,7 +346,7 @@ You can now apply these policies to a running app via `kubectl` or `oc`. If Dev 
 
 
 ```bash
-kuadrantctl generate gateway httproute --oas openapi.yaml | kubectl apply -f -
+kuadrantctl generate gatewayapi httproute --oas openapi.yaml | kubectl apply -f -
 kuadrantctl generate kuadrant authpolicy --oas openapi.yaml | kubectl apply -f -
 kuadrantctl generate kuadrant ratelimitpolicy --oas openapi.yaml | kubectl apply -f -
 ```
