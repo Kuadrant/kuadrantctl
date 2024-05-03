@@ -30,7 +30,7 @@ For this tutorial, we'll:
 To install `kuadrantctl` in your Dev Spaces workspace, execute the following command:
 
 ```bash
-curl -sL "https://github.com/kuadrant/kuadrantctl/releases/download/v0.2.2/kuadrantctl-v0.2.2-linux-amd64.tar.gz" | tar xz -C /home/user/.local/bin
+curl -sL "https://github.com/kuadrant/kuadrantctl/releases/download/v0.2.3/kuadrantctl-v0.2.3-linux-amd64.tar.gz" | tar xz -C /home/user/.local/bin
 ```
 
 This will place `kuadrantctl` in `/home/user/.local/bin`, which is included in the container's `$PATH` by default.
