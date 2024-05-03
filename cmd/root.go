@@ -40,8 +40,6 @@ func GetRootCmd(args []string) *cobra.Command {
 	rootCmd.SilenceUsage = true
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
-	rootCmd.AddCommand(installCommand())
-	rootCmd.AddCommand(uninstallCommand())
 	rootCmd.AddCommand(versionCommand())
 	rootCmd.AddCommand(generateCommand())
 
