@@ -19,7 +19,7 @@ kubectl create namespace petstore
 
 ## Create a Persistent Volume Claim
 
-To store Tekton build artifacts, create a PVC in the petstore namespace:
+For this guide, to store associated Tekton build artifacts, we'll create a PVC in the `petstore` namespace:
 
 ```bash
 kubectl apply -n petstore -f - <<EOF
@@ -81,8 +81,8 @@ spec:
         *) echo "Unsupported architecture: $ARCH" && exit 1 ;;
         esac
         cd $(workspaces.source.path)
-        curl -LO "https://github.com/Kuadrant/kuadrantctl/releases/download/v0.2.0/kuadrantctl-v0.2.0-linux-$BIN_ARCH.tar.gz"
-        tar -xzf kuadrantctl-v0.2.0-linux-$BIN_ARCH.tar.gz
+        curl -LO "https://github.com/Kuadrant/kuadrantctl/releases/download/v0.2.3/kuadrantctl-v0.2.3-linux-$BIN_ARCH.tar.gz"
+        tar -xzf kuadrantctl-v0.2.3-linux-$BIN_ARCH.tar.gz
     - name: run-kuadrantctl
       image: alpine:latest
       script: |
@@ -92,9 +92,8 @@ spec:
         ./kuadrantctl generate kuadrant ratelimitpolicy --oas openapi.yaml |  tee generated-resources/ratelimitpolicy.yaml
         ./kuadrantctl generate gatewayapi httproute --oas openapi.yaml | tee generated-resources/httproute.yaml
     - name: apply-resources
-      image: lachlanevenson/k8s-kubectl
+      image: bitnami/kubectl
       script: |
-        apk add --no-cache gettext > /dev/null
         cd $(workspaces.source.path)
         export KUADRANT_ZONE_ROOT_DOMAIN=example.com # domain name used in the HTTPRoute for the petstore sample app
         for file in ./generated-resources/*.yaml; do
@@ -103,7 +102,7 @@ spec:
 EOF
 ```
 
-We're using Tekton here with `kubectl` to apply resources to a cluster. We recommend looking at a tool such as (ArgoCD)[https://argo-cd.readthedocs.io/en/stable/] to implement continuous delivery via a GitOps approach. In this scenario, you would:
+We're using Tekton here with `kubectl` to apply resources to a cluster. We recommend looking at a tool such as [ArgoCD](https://argo-cd.readthedocs.io/en/stable/) to implement continuous delivery via a GitOps approach. In this scenario, you would:
 
 - Use `kuadrantctl` to generate Kubernetes/Kuadrant resources as part a Tekton pipeline
 - Commit these new resources in to a git respository
@@ -111,7 +110,11 @@ We're using Tekton here with `kubectl` to apply resources to a cluster. We recom
 
 ## Create a Kubeconfig Secret
 
-Provide Tekton access to your Kubernetes cluster by creating a secret with your kubeconfig in the `petstore` namespace:
+> **Note:** Important: While this guide uses a kubeconfig secret for simplicity, it is not recommended for production environments. Instead, use a Service Account for enhanced security.
+
+In this guide, we use a `kubeconfig` secret coupled with role bindings to demonstrate how to provide access for pushing generated resources to a cluster. However, for production setups, employing a Service Account is advised.
+
+To proceed, create a kubeconfig secret in the `petstore` namespace to provide Tekton with access to your Kubernetes cluster:
 
 ```bash
 kubectl create secret generic kubeconfig-secret --from-file=kubeconfig=/path/to/.kube/config -n petstore
@@ -176,6 +179,42 @@ spec:
 EOF
 ```
 
+If you have `tkn` installed, you can easily view the progress of the pipe run:
+
+```bash
+tkn taskrun list -n petstore
+NAME                      STARTED          DURATION   STATUS
+run-kuadrantctl-taskrun   12 seconds ago   ---        Running(Pending)
+```
+
+```bash
+tkn taskrun logs -n petstore -f
+
+
+[clone] Cloning into '/workspace/source'...
+[clone] Already on 'main'
+[clone] Your branch is up to date with 'origin/main'.
+
+[download-kuadrantctl]   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+[download-kuadrantctl]                                  Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100 21.4M  100 21.4M    0     0  6601k      0  0:00:03  0:00:03 --:--:-- 8756k
+
+[run-kuadrantctl] {"kind":"AuthPolicy","apiVersion":"kuadrant.io/v1beta2","metadata":{"name":"petstore","namespace":"petstore","creationTimestamp":null,"labels":{"deployment":"petstore","owner":"jbloggs"}},"spec":{"targetRef":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"petstore","namespace":"petstore"},"routeSelectors":[{"matches":[{"path":{"type":"Exact","value":"/api/v3/store/admin"},"method":"GET"}]}],"rules":{"authentication":{"storeAdmin_api_key":{"credentials":{"customHeader":{"name":"api_key"}},"apiKey":{"selector":{"matchLabels":{"kuadrant.io/apikeys-by":"api_key"}}},"routeSelectors":[{"matches":[{"path":{"type":"Exact","value":"/api/v3/store/admin"},"method":"GET"}]}]}}}},"status":{}}
+[run-kuadrantctl] {"kind":"RateLimitPolicy","apiVersion":"kuadrant.io/v1beta2","metadata":{"name":"petstore","namespace":"petstore","creationTimestamp":null,"labels":{"deployment":"petstore","owner":"jbloggs"}},"spec":{"targetRef":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"petstore","namespace":"petstore"},"limits":{"getInventory":{"routeSelectors":[{"matches":[{"path":{"type":"Exact","value":"/api/v3/store/inventory"},"method":"GET"}]}],"rates":[{"limit":10,"duration":10,"unit":"second"}]},"loginUser":{"routeSelectors":[{"matches":[{"path":{"type":"Exact","value":"/api/v3/user/login"},"method":"GET"}]}],"rates":[{"limit":2,"duration":10,"unit":"second"}]}}},"status":{}}
+[run-kuadrantctl] {"kind":"HTTPRoute","apiVersion":"gateway.networking.k8s.io/v1beta1","metadata":{"name":"petstore","namespace":"petstore","creationTimestamp":null,"labels":{"deployment":"petstore","owner":"jbloggs"}},"spec":{"parentRefs":[{"kind":"Gateway","namespace":"kuadrant-multi-cluster-gateways","name":"prod-web"}],"hostnames":["petstore.${KUADRANT_ZONE_ROOT_DOMAIN}"],"rules":[{"matches":[{"path":{"type":"Exact","value":"/api/v3/user/login"},"method":"GET"}],"backendRefs":[{"name":"petstore","namespace":"petstore","port":8080}]},{"matches":[{"path":{"type":"Exact","value":"/api/v3/store/admin"},"method":"GET"}],"backendRefs":[{"name":"petstore","namespace":"petstore","port":8080}]},{"matches":[{"path":{"type":"Exact","value":"/api/v3/store/inventory"},"method":"GET"}],"backendRefs":[{"name":"petstore","namespace":"petstore","port":8080}]}]},"status":{"parents":null}}
+
+[apply-resources] authpolicy.kuadrant.io/petstore created
+[apply-resources] httproute.gateway.networking.k8s.io/petstore created
+[apply-resources] ratelimitpolicy.kuadrant.io/petstore created
+```
+
 ## Cleanup
 
-To cleanup, remove the `petstore` namespace.
+To cleanup:
+
+- Remove the `petstore` namespace:
+- - `kubectl delete ns petstore`
+- Remove the `ClusterRole` and `ClusterRoleBinding`:
+- - `kubectl delete clusterrole kuadrant-ci-example-full-access`
+- - `kubectl delete clusterrolebinding kuadrant-ci-example-full-access-binding`
