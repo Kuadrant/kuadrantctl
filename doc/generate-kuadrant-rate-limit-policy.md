@@ -173,8 +173,3 @@ curl --resolve example.com:9080:127.0.0.1 -v "http://example.com:9080/dog"
 ```bash
 curl --resolve example.com:9080:127.0.0.1 -v -X POST "http://example.com:9080/dog"
 ```
-
-* Clean environment
-```bash
-make local-cleanup
-```
