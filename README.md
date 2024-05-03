@@ -41,8 +41,6 @@ kuadrantctl [command] [subcommand] [flags]
 | `completion` | Generate autocompletion scripts for the specified shell    |
 | `generate`   | Commands related to Kubernetes Gateway API and Kuadrant resource generation from OpenAPI 3.x specifications          |
 | `help`       | Help about any command                                     |
-| `install`    | Install the Kuadrant Operator with OLM to your Kuberenetes or OpenShift cluster                                         |
-| `uninstall`  | Uninstall Kuadrant Operator from a Kubernetes or OpenShift cluster                        |
 | `version`    | Print the version number of `kuadrantctl`                    |
 
 ### Flags
@@ -92,24 +90,6 @@ Generate Kuadrant resources from an OpenAPI 3.x specification
 | `ratelimitpolicy`| Generate [Kuadrant RateLimitPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/rate-limiting/) from an OpenAPI 3.0.x specification | `--oas string` Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required). `-o` Output format: 'yaml' or 'json'. Default: yaml |
 
 
-#### `install`
-
-Install the [Kuadrant Operator](https://github.com/Kuadrant/kuadrant-operator) into an OLM-powered cluster.
-
-| Flag                  | Description                      |
-| --------------------- | -------------------------------- |
-| `--kubeconfig` string | Kubernetes configuration file    |
-
-* For more information of the Kuadrant Operator, see https://docs.kuadrant.io/kuadrant-operator/
-
-#### `uninstall`
-
-Remove Kuadrant from the cluster.
-
-| Flag                  | Description                      |
-| --------------------- | -------------------------------- |
-| `--kubeconfig` string | Kubernetes configuration file    |
-
 #### `version`
 
 Print the version number of `kuadrantctl`.
@@ -149,8 +129,6 @@ For more detailed information about each command, including options and usage ex
 ```
 
 ## Commands
-* [Install Kuadrant](doc/install.md)
-* [Uninstall Kuadrant](doc/uninstall.md)
 * [Generate Gateway API HTTPRoute objects from OpenAPI 3.X](doc/generate-gateway-api-httproute.md)
 * [Generate Kuadrant RateLimitPolicy from OpenAPI 3.X](doc/generate-kuadrant-rate-limit-policy.md)
 * [Generate Kuadrant AuthPolicy from OpenAPI 3.X](doc/generate-kuadrant-auth-policy.md)

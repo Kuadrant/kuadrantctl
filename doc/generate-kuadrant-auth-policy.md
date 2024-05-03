@@ -211,22 +211,14 @@ git clone https://github.com/Kuadrant/kuadrantctl.git
 cd kuadrantctl
 ```
 
-* Setup cluster, istio and Gateway API CRDs
+* Setup a cluster, Istio and Gateway API CRDs and Kuadrant
 
-```bash
-make local-setup
-```
+Use our single-cluster quick start script - this will install Kuadrant in a local `kind` cluster: https://docs.kuadrant.io/getting-started-single-cluster/
 
 * Build and install CLI in `bin/kuadrantctl` path
 
 ```bash
 make install
-```
-
-* Install Kuadrant service protection. The CLI can be used to install kuadrant v0.4.1
-
-```bash
-bin/kuadrantctl install
 ```
 
 * Deploy petstore backend API
@@ -493,7 +485,3 @@ it should be a query string named `snake_token` and the token needs to be valid 
 curl -H 'Host: example.com' -i "http://127.0.0.1:9080/api/v1/snake?snake_token=I_LIKE_SNAKES"
 ```
 
-* Clean environment
-```bash
-make local-cleanup
-```

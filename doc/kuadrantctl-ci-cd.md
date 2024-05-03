@@ -86,15 +86,11 @@ spec:
     - name: run-kuadrantctl
       image: alpine:latest
       script: |
-        # Install yq silently
-        apk add --no-cache curl > /dev/null
-        curl -s -L https://github.com/mikefarah/yq/releases/download/v4.6.1/yq_linux_arm64 -o /usr/bin/yq > /dev/null && chmod +x /usr/bin/yq
-
         cd $(workspaces.source.path)
         mkdir -p generated-resources
-        ./kuadrantctl generate kuadrant authpolicy --oas openapi.yaml | yq eval -P | tee generated-resources/authpolicy.yaml
-        ./kuadrantctl generate kuadrant ratelimitpolicy --oas openapi.yaml | yq eval -P | tee generated-resources/ratelimitpolicy.yaml
-        ./kuadrantctl generate gatewayapi httproute --oas openapi.yaml | yq eval -P | tee generated-resources/httproute.yaml
+        ./kuadrantctl generate kuadrant authpolicy --oas openapi.yaml | tee generated-resources/authpolicy.yaml
+        ./kuadrantctl generate kuadrant ratelimitpolicy --oas openapi.yaml |  tee generated-resources/ratelimitpolicy.yaml
+        ./kuadrantctl generate gatewayapi httproute --oas openapi.yaml | tee generated-resources/httproute.yaml
     - name: apply-resources
       image: lachlanevenson/k8s-kubectl
       script: |

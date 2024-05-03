@@ -37,18 +37,15 @@ Global Flags:
 git clone https://github.com/Kuadrant/kuadrantctl.git
 cd kuadrantctl
 ```
-* Setup cluster, istio and Gateway API CRDs
-```bash
-make local-setup
-```
+* Setup a cluster, Istio and Gateway API CRDs and Kuadrant
+
+Use our single-cluster quick start script - this will install Kuadrant in a local `kind` cluster: https://docs.kuadrant.io/getting-started-single-cluster/
+
 * Build and install CLI in `bin/kuadrantctl` path
 ```bash
 make install
 ```
-* Install Kuadrant service protection. The CLI can be used to install kuadrant v0.4.1
-```bash
-bin/kuadrantctl install
-```
+
 * Deploy petstore backend API
 ```bash
 kubectl create namespace petstore
