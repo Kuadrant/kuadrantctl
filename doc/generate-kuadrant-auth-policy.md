@@ -25,6 +25,10 @@ OpenAPI [Security Scheme Object](https://spec.openapis.org/oas/latest.html#secur
 The following OAS example has one protected endpoint `GET /dog` with `openIdConnect` security scheme type.
 
 ```yaml
+openapi: "3.1.0"
+info:
+  title: "Pet Store API"
+  version: "1.0.0"
 paths:
   /dog:
     get:
@@ -41,10 +45,10 @@ components:
       openIdConnectUrl: https://example.com/.well-known/openid-configuration
 ```
 
-Running the command
+Take this example and save it as `example.yaml` and than run the command:
 
-```
-kuadrantctl generate kuadrant authpolicy --oas ./petstore-openapi.yaml  | yq -P
+```bash
+kuadrantctl generate kuadrant authpolicy --oas example.yaml
 ```
 
 The generated authpolicy (only relevan fields shown here):
@@ -52,10 +56,6 @@ The generated authpolicy (only relevan fields shown here):
 ```yaml
 kind: AuthPolicy
 apiVersion: kuadrant.io/v1beta2
-metadata:
-  name: petstore
-  namespace: petstore
-  creationTimestamp: null
 spec:
   routeSelectors:
     - matches:
@@ -82,6 +82,10 @@ spec:
 The following OAS example has one protected endpoint `GET /dog` with `apiKey` security scheme type.
 
 ```yaml
+openapi: "3.1.0"
+info:
+  title: "Pet Store API"
+  version: "1.0.0"
 paths:
   /dog:
     get:
@@ -99,10 +103,10 @@ components:
       in: query
 ```
 
-Running the command
+Take this example and save it as `example.yaml` and than run the command:
 
-```
-kuadrantctl generate kuadrant authpolicy --oas ./petstore-openapi.yaml  | yq -P
+```bash
+kuadrantctl generate kuadrant authpolicy --oas example.yaml
 ```
 
 The generated authpolicy (only relevan fields shown here):
@@ -110,10 +114,6 @@ The generated authpolicy (only relevan fields shown here):
 ```yaml
 kind: AuthPolicy
 apiVersion: kuadrant.io/v1beta2
-metadata:
-  name: petstore
-  namespace: petstore
-  creationTimestamp: null
 spec:
   routeSelectors:
     - matches:
