@@ -318,6 +318,7 @@ EOF
 > Replace `${KEYCLOAK_PUBLIC_DOMAIN}` with your SSO instance domain
 
 * Create an API key only valid for `POST /api/v1/cat` endpoint
+
 ```yaml
 kubectl apply -f -<<EOF
 apiVersion: v1
@@ -333,6 +334,7 @@ stringData:
 type: Opaque
 EOF
 ```
+
 > **Note**: the label's value of `kuadrant.io/apikeys-by: cat_api_key` is the name of the sec scheme of the OpenAPI spec.
 
 * Create an API key only valid for `GET /api/v1/snake` endpoint
