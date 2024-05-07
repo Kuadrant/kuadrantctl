@@ -48,7 +48,7 @@ Although securityScheme is not an OpenAPI extension, it is used by `kuadrantctl`
             in: header
 ```
 
-When added, the UI will display this in the security requirements section:
+When added, the UI will display this in the security schemes section:
 
 ![Apicurio security requirements](./images/apicurio-security-scheme-apikey.png)
 
@@ -69,7 +69,7 @@ paths:
             rate_limit:
                 rates:
                     -
-                        limit: 2
+                        limit: 10
                         duration: 10
                         unit: second
 ```
