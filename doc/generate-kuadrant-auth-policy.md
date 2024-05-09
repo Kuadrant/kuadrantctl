@@ -42,7 +42,7 @@ components:
   securitySchemes:
     securedDog:
       type: openIdConnect
-      openIdConnectUrl: https://example.com/.well-known/openid-configuration
+      openIdConnectUrl: https://sso.example.com/auth/realms/petstore
 ```
 
 Take this example and save it as `example.yaml` and than run the command:
@@ -51,7 +51,7 @@ Take this example and save it as `example.yaml` and than run the command:
 kuadrantctl generate kuadrant authpolicy --oas example.yaml
 ```
 
-The generated authpolicy (only relevan fields shown here):
+The generated authpolicy (only relevant fields shown here):
 
 ```yaml
 kind: AuthPolicy
@@ -68,7 +68,7 @@ spec:
       getDog_securedDog:
         credentials: {}
         jwt:
-          issuerUrl: https://example.com/.well-known/openid-configuration
+          issuerUrl: https://sso.example.com/auth/realms/petstore
         routeSelectors:
           - matches:
               - path:
@@ -109,7 +109,7 @@ Take this example and save it as `example.yaml` and than run the command:
 kuadrantctl generate kuadrant authpolicy --oas example.yaml
 ```
 
-The generated authpolicy (only relevan fields shown here):
+The generated authpolicy (only relevant fields shown here):
 
 ```yaml
 kind: AuthPolicy
