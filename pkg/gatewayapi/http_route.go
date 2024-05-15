@@ -4,7 +4,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
-	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
@@ -43,7 +43,7 @@ func HTTPRouteObjectMetaFromOAS(doc *openapi3.T) metav1.ObjectMeta {
 	return om
 }
 
-func HTTPRouteGatewayParentRefsFromOAS(doc *openapi3.T) []gatewayapiv1beta1.ParentReference {
+func HTTPRouteGatewayParentRefsFromOAS(doc *openapi3.T) []gatewayapiv1.ParentReference {
 	if doc.Info == nil {
 		return nil
 	}
@@ -65,7 +65,7 @@ func HTTPRouteGatewayParentRefsFromOAS(doc *openapi3.T) []gatewayapiv1beta1.Pare
 	return kuadrantInfoExtension.Route.ParentRefs
 }
 
-func HTTPRouteHostnamesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.Hostname {
+func HTTPRouteHostnamesFromOAS(doc *openapi3.T) []gatewayapiv1.Hostname {
 	if doc.Info == nil {
 		return nil
 	}
@@ -86,10 +86,10 @@ func HTTPRouteHostnamesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.Hostname {
 	return kuadrantInfoExtension.Route.Hostnames
 }
 
-func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
+func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1.HTTPRouteRule {
 	// Current implementation, one rule per operation
 	// TODO(eguzki): consider about grouping operations as HTTPRouteMatch objects in fewer HTTPRouteRule objects
-	rules := make([]gatewayapiv1beta1.HTTPRouteRule, 0)
+	rules := make([]gatewayapiv1.HTTPRouteRule, 0)
 
 	basePath, err := utils.BasePathFromOpenAPI(doc)
 	if err != nil {
@@ -138,11 +138,11 @@ func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
 	return rules
 }
 
-func buildHTTPRouteRule(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, backendRefs []gatewayapiv1beta1.HTTPBackendRef, pathMatchType gatewayapiv1beta1.PathMatchType) gatewayapiv1beta1.HTTPRouteRule {
+func buildHTTPRouteRule(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, backendRefs []gatewayapiv1.HTTPBackendRef, pathMatchType gatewayapiv1.PathMatchType) gatewayapiv1.HTTPRouteRule {
 	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op, pathMatchType)
 
-	return gatewayapiv1beta1.HTTPRouteRule{
+	return gatewayapiv1.HTTPRouteRule{
 		BackendRefs: backendRefs,
-		Matches:     []gatewayapiv1beta1.HTTPRouteMatch{match},
+		Matches:     []gatewayapiv1.HTTPRouteMatch{match},
 	}
 }

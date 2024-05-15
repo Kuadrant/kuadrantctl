@@ -10,7 +10,7 @@ import (
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
 var (
@@ -76,15 +76,15 @@ func runGenerateGatewayApiHttpRoute(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func buildHTTPRoute(doc *openapi3.T) *gatewayapiv1beta1.HTTPRoute {
-	return &gatewayapiv1beta1.HTTPRoute{
+func buildHTTPRoute(doc *openapi3.T) *gatewayapiv1.HTTPRoute {
+	return &gatewayapiv1.HTTPRoute{
 		TypeMeta: v1.TypeMeta{
-			APIVersion: "gateway.networking.k8s.io/v1beta1",
+			APIVersion: gatewayapiv1.GroupVersion.String(),
 			Kind:       "HTTPRoute",
 		},
 		ObjectMeta: gatewayapi.HTTPRouteObjectMetaFromOAS(doc),
-		Spec: gatewayapiv1beta1.HTTPRouteSpec{
-			CommonRouteSpec: gatewayapiv1beta1.CommonRouteSpec{
+		Spec: gatewayapiv1.HTTPRouteSpec{
+			CommonRouteSpec: gatewayapiv1.CommonRouteSpec{
 				ParentRefs: gatewayapi.HTTPRouteGatewayParentRefsFromOAS(doc),
 			},
 			Hostnames: gatewayapi.HTTPRouteHostnamesFromOAS(doc),

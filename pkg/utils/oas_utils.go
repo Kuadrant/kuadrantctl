@@ -8,7 +8,7 @@ import (
 	"regexp"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
 var (
@@ -97,7 +97,7 @@ func BasePathFromOpenAPI(obj *openapi3.T) (string, error) {
 	return serverURL.Path, nil
 }
 
-func OpenAPIMatcherFromOASOperations(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1beta1.PathMatchType) gatewayapiv1beta1.HTTPRouteMatch {
+func OpenAPIMatcherFromOASOperations(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType) gatewayapiv1.HTTPRouteMatch {
 	// remove the last slash of the Base Path
 	sanitizedBasePath := LastSlashRegexp.ReplaceAllString(basePath, "")
 
@@ -122,9 +122,9 @@ func OpenAPIMatcherFromOASOperations(basePath, path string, pathItem *openapi3.P
 		queryParams = operationQueryParamsMatch
 	}
 
-	return gatewayapiv1beta1.HTTPRouteMatch{
-		Method: &[]gatewayapiv1beta1.HTTPMethod{gatewayapiv1beta1.HTTPMethod(verb)}[0],
-		Path: &gatewayapiv1beta1.HTTPPathMatch{
+	return gatewayapiv1.HTTPRouteMatch{
+		Method: &[]gatewayapiv1.HTTPMethod{gatewayapiv1.HTTPMethod(verb)}[0],
+		Path: &gatewayapiv1.HTTPPathMatch{
 			Type:  &pathMatchType,
 			Value: &[]string{matchPath}[0],
 		},
@@ -133,8 +133,8 @@ func OpenAPIMatcherFromOASOperations(basePath, path string, pathItem *openapi3.P
 	}
 }
 
-func headersMatchFromParams(params openapi3.Parameters) []gatewayapiv1beta1.HTTPHeaderMatch {
-	matches := make([]gatewayapiv1beta1.HTTPHeaderMatch, 0)
+func headersMatchFromParams(params openapi3.Parameters) []gatewayapiv1.HTTPHeaderMatch {
+	matches := make([]gatewayapiv1.HTTPHeaderMatch, 0)
 
 	for _, parameter := range params {
 		if !parameter.Value.Required {
@@ -142,9 +142,9 @@ func headersMatchFromParams(params openapi3.Parameters) []gatewayapiv1beta1.HTTP
 		}
 
 		if parameter.Value.In == openapi3.ParameterInHeader {
-			matches = append(matches, gatewayapiv1beta1.HTTPHeaderMatch{
-				Type: &[]gatewayapiv1beta1.HeaderMatchType{gatewayapiv1beta1.HeaderMatchExact}[0],
-				Name: gatewayapiv1beta1.HTTPHeaderName(parameter.Value.Name),
+			matches = append(matches, gatewayapiv1.HTTPHeaderMatch{
+				Type: &[]gatewayapiv1.HeaderMatchType{gatewayapiv1.HeaderMatchExact}[0],
+				Name: gatewayapiv1.HTTPHeaderName(parameter.Value.Name),
 			})
 		}
 	}
@@ -156,8 +156,8 @@ func headersMatchFromParams(params openapi3.Parameters) []gatewayapiv1beta1.HTTP
 	return matches
 }
 
-func queryParamsMatchFromParams(params openapi3.Parameters) []gatewayapiv1beta1.HTTPQueryParamMatch {
-	matches := make([]gatewayapiv1beta1.HTTPQueryParamMatch, 0)
+func queryParamsMatchFromParams(params openapi3.Parameters) []gatewayapiv1.HTTPQueryParamMatch {
+	matches := make([]gatewayapiv1.HTTPQueryParamMatch, 0)
 
 	for _, parameter := range params {
 		if !parameter.Value.Required {
@@ -165,9 +165,9 @@ func queryParamsMatchFromParams(params openapi3.Parameters) []gatewayapiv1beta1.
 		}
 
 		if parameter.Value.In == openapi3.ParameterInQuery {
-			matches = append(matches, gatewayapiv1beta1.HTTPQueryParamMatch{
-				Type: &[]gatewayapiv1beta1.QueryParamMatchType{gatewayapiv1beta1.QueryParamMatchExact}[0],
-				Name: parameter.Value.Name,
+			matches = append(matches, gatewayapiv1.HTTPQueryParamMatch{
+				Type: &[]gatewayapiv1.QueryParamMatchType{gatewayapiv1.QueryParamMatchExact}[0],
+				Name: gatewayapiv1.HTTPHeaderName(parameter.Value.Name),
 			})
 		}
 	}

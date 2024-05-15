@@ -11,8 +11,8 @@ import (
 	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gatewayapiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
-	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 
 	"github.com/kuadrant/kuadrantctl/pkg/gatewayapi"
 	"github.com/kuadrant/kuadrantctl/pkg/kuadrantapi"
@@ -94,17 +94,19 @@ func buildRateLimitPolicy(doc *openapi3.T) *kuadrantapiv1beta2.RateLimitPolicy {
 		ObjectMeta: kuadrantapi.RateLimitPolicyObjectMetaFromOAS(doc),
 		Spec: kuadrantapiv1beta2.RateLimitPolicySpec{
 			TargetRef: gatewayapiv1alpha2.PolicyTargetReference{
-				Group: gatewayapiv1beta1.Group("gateway.networking.k8s.io"),
-				Kind:  gatewayapiv1beta1.Kind("HTTPRoute"),
-				Name:  gatewayapiv1beta1.ObjectName(routeMeta.Name),
+				Group: gatewayapiv1.GroupName,
+				Kind:  gatewayapiv1.Kind("HTTPRoute"),
+				Name:  gatewayapiv1.ObjectName(routeMeta.Name),
 			},
-			Limits: kuadrantapi.RateLimitPolicyLimitsFromOAS(doc),
+			RateLimitPolicyCommonSpec: kuadrantapiv1beta2.RateLimitPolicyCommonSpec{
+				Limits: kuadrantapi.RateLimitPolicyLimitsFromOAS(doc),
+			},
 		},
 	}
 
 	if routeMeta.Namespace != "" {
-		rlp.Spec.TargetRef.Namespace = &[]gatewayapiv1beta1.Namespace{
-			gatewayapiv1beta1.Namespace(routeMeta.Namespace),
+		rlp.Spec.TargetRef.Namespace = &[]gatewayapiv1.Namespace{
+			gatewayapiv1.Namespace(routeMeta.Namespace),
 		}[0]
 	}
 
