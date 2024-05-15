@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -44,7 +44,7 @@ var _ = Describe("Generate AuthPolicy", func() {
 		It("authorization policy generated", func() {
 			cmd.SetArgs([]string{"--oas", "testdata/petstore_openapi.yaml"})
 			Expect(cmd.Execute()).ShouldNot(HaveOccurred())
-			out, err := ioutil.ReadAll(cmdStdoutBuffer)
+			out, err := io.ReadAll(cmdStdoutBuffer)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			var kap kuadrantapiv1beta2.AuthPolicy
