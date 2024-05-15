@@ -3,15 +3,15 @@ openapi: "3.0.3"
 info:
   title: "Pet Store API"
   version: "1.0.0"
-  x-kuadrant:
-    route:
-      name: "petstore"
-      namespace: "petstore"
-      hostnames:
-        - example.com
-      parentRefs:
-        - name: istio-ingressgateway
-          namespace: istio-system
+x-kuadrant:
+  route:
+    name: "petstore"
+    namespace: "petstore"
+    hostnames:
+      - example.com
+    parentRefs:
+      - name: istio-ingressgateway
+        namespace: istio-system
 servers:
   - url: https://example.io/api/v1
 paths:

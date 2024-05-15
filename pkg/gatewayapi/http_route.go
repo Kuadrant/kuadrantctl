@@ -10,80 +10,67 @@ import (
 )
 
 func HTTPRouteObjectMetaFromOAS(doc *openapi3.T) metav1.ObjectMeta {
-	if doc.Info == nil {
-		return metav1.ObjectMeta{}
-	}
-
-	kuadrantInfoExtension, err := utils.NewKuadrantOASInfoExtension(doc.Info)
+	kuadrantRootExtension, err := utils.NewKuadrantOASRootExtension(doc)
 	if err != nil {
 		panic(err)
 	}
 
-	if kuadrantInfoExtension == nil {
+	if kuadrantRootExtension == nil {
 		return metav1.ObjectMeta{}
 	}
 
-	if kuadrantInfoExtension.Route == nil {
-		panic("info kuadrant extension route not found")
+	if kuadrantRootExtension.Route == nil {
+		panic("openapi root kuadrant extension route not found")
 	}
 
-	if kuadrantInfoExtension.Route.Name == nil {
-		panic("info kuadrant extension route name not found")
+	if kuadrantRootExtension.Route.Name == nil {
+		panic("openapi root kuadrant extension route name not found")
 	}
 
 	om := metav1.ObjectMeta{
-		Name:   *kuadrantInfoExtension.Route.Name,
-		Labels: kuadrantInfoExtension.Route.Labels,
+		Name:   *kuadrantRootExtension.Route.Name,
+		Labels: kuadrantRootExtension.Route.Labels,
 	}
 
-	if kuadrantInfoExtension.Route.Namespace != nil {
-		om.Namespace = *kuadrantInfoExtension.Route.Namespace
+	if kuadrantRootExtension.Route.Namespace != nil {
+		om.Namespace = *kuadrantRootExtension.Route.Namespace
 	}
 
 	return om
 }
 
 func HTTPRouteGatewayParentRefsFromOAS(doc *openapi3.T) []gatewayapiv1.ParentReference {
-	if doc.Info == nil {
-		return nil
-	}
-
-	kuadrantInfoExtension, err := utils.NewKuadrantOASInfoExtension(doc.Info)
-
+	kuadrantRootExtension, err := utils.NewKuadrantOASRootExtension(doc)
 	if err != nil {
 		panic(err)
 	}
 
-	if kuadrantInfoExtension == nil {
+	if kuadrantRootExtension == nil {
 		return nil
 	}
 
-	if kuadrantInfoExtension.Route == nil {
-		panic("info kuadrant extension route not found")
+	if kuadrantRootExtension.Route == nil {
+		panic("openapi root kuadrant extension route not found")
 	}
 
-	return kuadrantInfoExtension.Route.ParentRefs
+	return kuadrantRootExtension.Route.ParentRefs
 }
 
 func HTTPRouteHostnamesFromOAS(doc *openapi3.T) []gatewayapiv1.Hostname {
-	if doc.Info == nil {
-		return nil
-	}
-
-	kuadrantInfoExtension, err := utils.NewKuadrantOASInfoExtension(doc.Info)
+	kuadrantRootExtension, err := utils.NewKuadrantOASRootExtension(doc)
 	if err != nil {
 		panic(err)
 	}
 
-	if kuadrantInfoExtension == nil {
+	if kuadrantRootExtension == nil {
 		return nil
 	}
 
-	if kuadrantInfoExtension.Route == nil {
-		panic("info kuadrant extension route not found")
+	if kuadrantRootExtension.Route == nil {
+		panic("openapi root kuadrant extension route not found")
 	}
 
-	return kuadrantInfoExtension.Route.Hostnames
+	return kuadrantRootExtension.Route.Hostnames
 }
 
 func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1.HTTPRouteRule {
