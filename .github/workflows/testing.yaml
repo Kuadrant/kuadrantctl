@@ -53,7 +53,13 @@ jobs:
       - name: Run tests
         run: |
           make test
-      - name: Report to CodeCov
-        uses: codecov/codecov-action@v2
+      - name: Upload test coverage reports to CodeCov
+        # more at https://github.com/codecov/codecov-action
+        # Only run if the feature branch is in your repo (not in a fork)
+        # as Tokenless uploading is rate limited for public repos
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: codecov/codecov-action@v4
         with:
-          files: "*.coverprofile"
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          verbose: true

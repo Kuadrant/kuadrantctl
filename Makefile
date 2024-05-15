@@ -3,7 +3,6 @@ SHELL := /bin/bash
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 GO ?= go
-KUADRANT_NAMESPACE=kuadrant-system
 
 all: help
 
@@ -14,7 +13,14 @@ help: Makefile
 # Ginkgo tool
 GINKGO = $(PROJECT_PATH)/bin/ginkgo
 $(GINKGO):
-	$(call go-install-tool,$(GINKGO),github.com/onsi/ginkgo/ginkgo@v1.16.4)
+	# In order to make sure the version of the ginkgo cli installed
+	# is the same as the version of go.mod,
+	# instead of calling go-install-tool,
+	# running go install from the current module will pick version from current go.mod file.
+	GOBIN=$(PROJECT_PATH)/bin go install github.com/onsi/ginkgo/v2/ginkgo
+
+.PHONY: ginkgo
+ginkgo: $(GINKGO) ## Download ginkgo locally if necessary.
 
 KIND = $(PROJECT_PATH)/bin/kind
 KIND_VERSION = v0.20.0
@@ -33,10 +39,17 @@ kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 
 ## test: Run unit tests
 .PHONY : test
-test: fmt vet $(GINKGO)
-	# huffle both the order in which specs within a suite run, and the order in which different suites run
+test: clean-cov fmt vet $(GINKGO)
+	mkdir -p $(PROJECT_PATH)/coverage
+	# Shuffle both the order in which specs within a suite run, and the order in which different suites run
 	# You can always rerun a given ordering later by passing the --seed flag a matching seed.
-	$(GINKGO) --randomizeAllSpecs --randomizeSuites -v -progress --trace --cover ./...
+	$(GINKGO) \
+		--randomize-all \
+		--randomize-suites \
+		--coverpkg ./pkg/...,./cmd/... \
+		--output-dir $(PROJECT_PATH)/coverage \
+		--coverprofile cover.out \
+		./pkg/... ./cmd/...
 
 ## install: Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 .PHONY : install
@@ -73,6 +86,10 @@ fmt:
 .PHONY : vet
 vet:
 	$(GO) vet ./...
+
+.PHONY: clean-cov
+clean-cov: ## Remove coverage reports
+	rm -rf $(PROJECT_PATH)/coverage
 
 # Include last to avoid changing MAKEFILE_LIST used above
 include ./make/*.mk
