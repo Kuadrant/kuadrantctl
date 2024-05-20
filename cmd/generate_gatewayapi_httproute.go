@@ -30,7 +30,7 @@ func generateGatewayApiHttpRouteCommand() *cobra.Command {
 
 	// OpenAPI ref
 	cmd.Flags().StringVar(&generateGatewayAPIHTTPRouteOAS, "oas", "", "Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)")
-	cmd.Flags().StringVarP(&generateGatewayAPIHTTPRouteFormat, "output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
+	cmd.Flags().StringVarP(&generateGatewayAPIHTTPRouteFormat, "output-format", "o", "yaml", "Output format: 'yaml' or 'json'.")
 	err := cmd.MarkFlagRequired("oas")
 	if err != nil {
 		panic(err)

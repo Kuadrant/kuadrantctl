@@ -173,7 +173,7 @@ Usage:
 Flags:
   -h, --help         help for authpolicy
   --oas string        Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)
-  -o Output format:   'yaml' or 'json'. Default: yaml
+  -o Output format:   'yaml' or 'json'. (default "yaml")
 
 Global Flags:
   -v, --verbose   verbose output

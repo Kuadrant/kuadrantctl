@@ -35,7 +35,7 @@ func generateKuadrantRateLimitPolicyCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&generateRateLimitPolicyOAS, "oas", "", "Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required)")
-	cmd.Flags().StringVarP(&generateRateLimitPolicyFormat, "output-format", "o", "yaml", "Output format: 'yaml' or 'json'. Default: yaml")
+	cmd.Flags().StringVarP(&generateRateLimitPolicyFormat, "output-format", "o", "yaml", "Output format: 'yaml' or 'json'.")
 
 	if err := cmd.MarkFlagRequired("oas"); err != nil {
 		fmt.Println("Error setting 'oas' flag as required:", err)
