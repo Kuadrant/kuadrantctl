@@ -232,6 +232,9 @@ kubectl apply -n petstore -f examples/petstore/petstore.yaml
 
 <details>
 
+> Replace `${KEYCLOAK_ISSUER}` with your SSO instance issuer endpoint for your `petstore` realm. 
+> Otherwise remove the oidc from `components.securitySchemas` and `/dog`, `/snake` paths
+
 ```yaml
 cat <<EOF >petstore-openapi.yaml
 ---
@@ -314,9 +317,6 @@ EOF
 ```
 
 </details>
-
-> Replace `${KEYCLOAK_ISSUER}` with your SSO instance issuer endpoint for your `petstore` realm. 
-> Otherwise remove the oidc from `components.securitySchemas` and `/dog`, `/snake` paths
 
 * Create `istio-ingressgateway` Gateway object
 
@@ -474,6 +474,9 @@ We will be authenticating as `bob` user with `p` password.
 We previously created `bob` user in Keycloak in the `petstore` realm.
 We will use Command-line JSON processor `jq` to extract the access token into `ACCESS_TOKEN` variable:
 
+
+> Replace `${KEYCLOAK_TOKEN_ENDPOINT}` with your SSO instance token endpoint for your `petstore` realm.
+
 ```bash
 export ACCESS_TOKEN=$(curl -k -H "Content-Type: application/x-www-form-urlencoded" \
         -d 'grant_type=password' \
@@ -483,8 +486,6 @@ export ACCESS_TOKEN=$(curl -k -H "Content-Type: application/x-www-form-urlencode
         -d 'password=p' \
         "${KEYCLOAK_TOKEN_ENDPOINT}" | jq -r '.access_token')
 ```
-
-> Replace `${KEYCLOAK_TOKEN_ENDPOINT}` with your SSO instance token endpoint for your `petstore` realm.
 
 With the access token in place, let's try to get those puppies
 
