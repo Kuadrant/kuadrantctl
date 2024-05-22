@@ -1,12 +1,14 @@
-## OpenAPI 3.0.X Kuadrant Extensions
+# OpenAPI 3.0.x Kuadrant extensions
 
-### Info level kuadrant extension
+This reference information shows examples of how to add Kuadrant extensions at the `info`, path, and operation level in an OpenAPI 3.0.x definition. 
 
-Kuadrant extension that can be added at the info level of the OpenAPI spec.
+## Info-level Kuadrant extension
+
+You can add a Kuadrant extension at the `info` level of an OpenAPI definition. The following example shows an extension added for a `petstore` app:
 
 ```yaml
 info:
-  x-kuadrant:
+  x-kuadrant: ## Info-level Kuadrant extension
     route:  ## HTTPRoute metadata
       name: "petstore"
       namespace: "petstore"
@@ -19,23 +21,23 @@ info:
           namespace: gateways
 ```
 
-### Path level kuadrant extension
+## Path-level Kuadrant extension
 
-Kuadrant extension that can be added at the path level of the OpenAPI spec.
-This configuration at the path level
-is the default when there is no operation level configuration.
+You can add a Kuadrant extension at the path level of an OpenAPI definition.
+This configuration at the path level is the default when there is no operation-level configuration. 
+The following example shows an extension added for a `/cat` path:
 
 ```yaml
 paths:
   /cat:
-    x-kuadrant:  ## Path level Kuadrant Extension
+    x-kuadrant:  ## Path-level Kuadrant extension
       disable: true  ## Remove from the HTTPRoute. Optional. Default: false
-      pathMatchType: Exact ## Specifies how to match against the path Value. Valid values: [Exact;PathPrefix]. Optional. Default: Exact
+      pathMatchType: Exact ## Specifies how to match against the path value. Valid values: [Exact;PathPrefix]. Optional. Default: Exact
       backendRefs:  ## Backend references to be included in the HTTPRoute. []gateway.networking.k8s.io/v1beta1.HTTPBackendRef. Optional.
         - name: petstore
           port: 80
           namespace: petstore
-      rate_limit:  ## Rate limit config. Optional.
+      rate_limit:  ## Rate limit configuration. Optional.
         rates:   ## Kuadrant API []github.com/kuadrant/kuadrant-operator/api/v1beta2.Rate
           - limit: 1
             duration: 10
@@ -48,23 +50,22 @@ paths:
             value: alice
 ```
 
-### Operation level kuadrant extension
+## Operation-level Kuadrant extension
 
-Kuadrant extension that can be added at the operation level of the OpenAPI spec.
-Same schema as path level kuadrant extension.
+You can add a Kuadrant extension at the operation level of an OpenAPI definition. This extension uses the same schema as the path-level Kuadrant extension. The following example shows an extension added for a `get` operation:
 
 ```yaml
 paths:
   /cat:
     get:
-      x-kuadrant:  ## Path level Kuadrant Extension
-        disable: true  ## Remove from the HTTPRoute. Optional. Default: path level "disable" value
-        pathMatchType: Exact ## Specifies how to match against the path Value. Valid values: [Exact;PathPrefix]. Optional. Default: Exact
+      x-kuadrant:  ## Operation-level Kuadrant extension
+        disable: true  ## Remove from the HTTPRoute. Optional. Default: path level "disable" value.
+        pathMatchType: Exact ## Specifies how to match against the path value. Valid values: [Exact;PathPrefix]. Optional. Default: Exact.
         backendRefs:  ## Backend references to be included in the HTTPRoute. Optional.
           - name: petstore
             port: 80
             namespace: petstore
-        rate_limit:  ## Rate limit config. Optional.
+        rate_limit:  ## Rate limit configuration. Optional.
           rates:   ## Kuadrant API github.com/kuadrant/kuadrant-operator/api/v1beta2.Rate
             - limit: 1
               duration: 10
