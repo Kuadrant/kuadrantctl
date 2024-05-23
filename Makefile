@@ -41,6 +41,7 @@ test: fmt vet $(GINKGO)
 ## install: Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 .PHONY : install
 install: fmt vet
+	$(MAKE) update-version
 	GOBIN=$(PROJECT_PATH)/bin $(GO) install
 
 .PHONY: prepare-local-cluster
@@ -73,6 +74,11 @@ fmt:
 .PHONY : vet
 vet:
 	$(GO) vet ./...
+
+.PHONY: update-version
+update-version:
+	@commit_hash=$$(git rev-parse --short=7 HEAD); \
+	sed -i.bak 's/Version = "v0.0.0"/Version = "dev - '$${commit_hash}'"/' version/version.go && rm version/version.go.bak
 
 # Include last to avoid changing MAKEFILE_LIST used above
 include ./make/*.mk
