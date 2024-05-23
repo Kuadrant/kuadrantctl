@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/getkin/kin-openapi v0.120.0
+	github.com/kuadrant/authorino v0.15.0
 	github.com/kuadrant/kuadrant-operator v0.4.1
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.27.10
@@ -16,6 +17,7 @@ require (
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	sigs.k8s.io/controller-runtime v0.16.3
 	sigs.k8s.io/gateway-api v0.6.2
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
@@ -45,7 +47,6 @@ require (
 	github.com/invopop/yaml v0.2.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/kuadrant/authorino v0.15.0 // indirect
 	github.com/kuadrant/authorino-operator v0.9.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
@@ -89,5 +90,4 @@ require (
 	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
-	sigs.k8s.io/yaml v1.4.0 // indirect
 )
