@@ -4,6 +4,7 @@ MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 GO ?= go
 KUADRANT_NAMESPACE=kuadrant-system
+VERSION := $(shell git rev-parse --short=7 HEAD)
 
 all: help
 
@@ -41,8 +42,7 @@ test: fmt vet $(GINKGO)
 ## install: Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 .PHONY : install
 install: fmt vet
-	$(MAKE) update-version
-	GOBIN=$(PROJECT_PATH)/bin $(GO) install
+	GOBIN=$(PROJECT_PATH)/bin $(GO) install -ldflags "-X 'github.com/kuadrant/kuadrantctl/version.Version=dev - $(VERSION)'" 
 
 .PHONY: prepare-local-cluster
 prepare-local-cluster: $(KIND) ## Deploy locally kuadrant operator from the current code
@@ -74,11 +74,6 @@ fmt:
 .PHONY : vet
 vet:
 	$(GO) vet ./...
-
-.PHONY: update-version
-update-version:
-	@commit_hash=$$(git rev-parse --short=7 HEAD); \
-	sed -i.bak 's/Version = "v0.0.0"/Version = "dev - '$${commit_hash}'"/' version/version.go && rm version/version.go.bak
 
 # Include last to avoid changing MAKEFILE_LIST used above
 include ./make/*.mk
