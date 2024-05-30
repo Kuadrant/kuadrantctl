@@ -42,7 +42,11 @@ test: fmt vet $(GINKGO)
 ## install: Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 .PHONY : install
 install: fmt vet
+ifneq ($(VERSION),)
 	GOBIN=$(PROJECT_PATH)/bin $(GO) install -ldflags "-X 'github.com/kuadrant/kuadrantctl/version.Version=dev - $(VERSION)'" 
+else
+	GOBIN=$(PROJECT_PATH)/bin $(GO) install
+endif
 
 .PHONY: prepare-local-cluster
 prepare-local-cluster: $(KIND) ## Deploy locally kuadrant operator from the current code
