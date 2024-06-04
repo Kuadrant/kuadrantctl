@@ -5,7 +5,7 @@ import (
 	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
-	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"github.com/kuadrant/kuadrantctl/pkg/gatewayapi"
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
@@ -82,12 +82,12 @@ func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2
 	return limits
 }
 
-func buildLimitRouteSelectors(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1beta1.PathMatchType) []kuadrantapiv1beta2.RouteSelector {
+func buildLimitRouteSelectors(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType) []kuadrantapiv1beta2.RouteSelector {
 	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op, pathMatchType)
 
 	return []kuadrantapiv1beta2.RouteSelector{
 		{
-			Matches: []gatewayapiv1beta1.HTTPRouteMatch{match},
+			Matches: []gatewayapiv1.HTTPRouteMatch{match},
 		},
 	}
 }

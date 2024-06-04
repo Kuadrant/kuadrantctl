@@ -37,23 +37,16 @@ jobs:
         id: go
       - name: Check out code
         uses: actions/checkout@v3
-      - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.8.0
-        with:
-          version: v0.20.0
-          config: utils/kind-cluster.yaml
-          cluster_name: ${{ env.KIND_CLUSTER_NAME }}
-          wait: 120s
-      - name: Check cluster info
-        run: |
-          kubectl cluster-info dump
-      - name: Run make env-setup
-        run: |
-          make env-setup
       - name: Run tests
         run: |
           make test
-      - name: Report to CodeCov
-        uses: codecov/codecov-action@v2
+      - name: Upload test coverage reports to CodeCov
+        # more at https://github.com/codecov/codecov-action
+        # Only run if the feature branch is in your repo (not in a fork)
+        # as Tokenless uploading is rate limited for public repos
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: codecov/codecov-action@v4
         with:
-          files: "*.coverprofile"
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          verbose: true
