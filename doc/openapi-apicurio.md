@@ -23,17 +23,16 @@ The following configuration and extension points are supported by Apicurio Studi
 To generate an [HTTPRoute](https://gateway-api.sigs.k8s.io/api-types/httproute/) for the API, add the following `x-kuadrant` block to your API definition in Apicurio Studio, replacing values to match your API details and the location of your Gateway:
 
 ```yaml
-info:
-    x-kuadrant:
-        route:
-            name: petstore
-            namespace: petstore
-            hostnames:
-                - 'petstore.example.com'
-            parentRefs:
-                -   name: prod-web
-                    namespace: kuadrant-multi-cluster-gateways
-                    kind: Gateway
+x-kuadrant:
+    route:
+        name: petstore
+        namespace: petstore
+        hostnames:
+            - 'petstore.example.com'
+        parentRefs:
+            -   name: prod-web
+                namespace: kuadrant-multi-cluster-gateways
+                kind: Gateway
 ```
 
 For more details, see [Generate Gateway API HTTPRoute object from OpenAPI 3](./generate-gateway-api-httproute.md).

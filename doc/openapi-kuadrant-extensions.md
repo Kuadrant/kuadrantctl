@@ -7,18 +7,17 @@ This reference information shows examples of how to add Kuadrant extensions at t
 You can add a Kuadrant extension at the `info` level of an OpenAPI definition. The following example shows an extension added for a `petstore` app:
 
 ```yaml
-info:
-  x-kuadrant: ## Info-level Kuadrant extension
-    route:  ## HTTPRoute metadata
-      name: "petstore"
-      namespace: "petstore"
-      labels:  ## map[string]string
-        deployment: petstore
-      hostnames:  ## []gateway.networking.k8s.io/v1beta1.Hostname
-        - example.com
-      parentRefs:  ## []gateway.networking.k8s.io/v1beta1.ParentReference
-        - name: apiGateway
-          namespace: gateways
+x-kuadrant:
+  route:  ## HTTPRoute metadata
+    name: "petstore"
+    namespace: "petstore"
+    labels:  ## map[string]string
+      deployment: petstore
+    hostnames:  ## []gateway.networking.k8s.io/v1beta1.Hostname
+      - example.com
+    parentRefs:  ## []gateway.networking.k8s.io/v1beta1.ParentReference
+      - name: apiGateway
+        namespace: gateways
 ```
 
 ## Path-level Kuadrant extension

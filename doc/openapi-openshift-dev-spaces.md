@@ -69,21 +69,20 @@ In this tutorial, you will add Kuadrant policies to your API definition as follo
 
 #### Defining a Gateway
 
-Use the `x-kuadrant` extension in the `info` block to specify a `Gateway`. This information will be used to generate `HTTPRoute`s at the path level. For example:
+Use the `x-kuadrant` extension in the root level to specify a `Gateway`. This information will be used to generate `HTTPRoute`s at the path level. For example:
 
 ```yaml
-info:
-  x-kuadrant:
-    route:  ## HTTPRoute metadata
-      name: "petstore"
-      namespace: "petstore"
-      labels:  ## map[string]string
-        deployment: petstore
-      hostnames:  ## []gateway.networking.k8s.io/v1beta1.Hostname
-        - example.com
-      parentRefs:  ## []gateway.networking.k8s.io/v1beta1.ParentReference
-        - name: apiGateway
-          namespace: gateways
+x-kuadrant:
+  route:  ## HTTPRoute metadata
+    name: "petstore"
+    namespace: "petstore"
+    labels:  ## map[string]string
+      deployment: petstore
+    hostnames:  ## []gateway.networking.k8s.io/v1beta1.Hostname
+      - example.com
+    parentRefs:  ## []gateway.networking.k8s.io/v1beta1.ParentReference
+      - name: apiGateway
+        namespace: gateways
 ```
 
 #### Specifying HTTPRoutes for each path

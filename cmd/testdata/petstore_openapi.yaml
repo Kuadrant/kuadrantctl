@@ -6,14 +6,14 @@ info:
 x-kuadrant:
   route:
     name: "petstore"
-    namespace: "petstore"
+    namespace: "petstore-ns"
     hostnames:
       - example.com
     parentRefs:
-      - name: istio-ingressgateway
-        namespace: istio-system
+      - name: gw
+        namespace: gw-ns
 servers:
-  - url: https://example.io/api/v1
+  - url: https://example.io/v1
 paths:
   /cat:
     x-kuadrant:  ## Path level Kuadrant Extension
@@ -34,7 +34,7 @@ paths:
         405:
           description: "invalid input"
     post:  # NOT added to the route
-      x-kuadrant:  ## Operation level Kuadrant Extension
+      x-kuadrant:
         disable: true
       operationId: "postCat"
       responses:
@@ -58,13 +58,20 @@ paths:
       responses:
         405:
           description: "invalid input"
-    post:  # Added to the route and NOT rate limited
+    post:  # Added to the route, NOT rate limited, secured
       x-kuadrant:  ## Operation level Kuadrant Extension
         backendRefs:
           - name: petstore
             port: 80
             namespace: petstore
       operationId: "postDog"
+      security:
+        - securedDog: []
       responses:
         405:
           description: "invalid input"
+components:
+  securitySchemes:
+    securedDog:
+      type: openIdConnect
+      openIdConnectUrl: https://example.com/.well-known/openid-configuration

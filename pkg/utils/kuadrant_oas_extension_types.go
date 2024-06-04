@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
 	"k8s.io/utils/ptr"
 	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
+
+	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
 )
 
 type RouteObject struct {
@@ -17,22 +18,22 @@ type RouteObject struct {
 	Labels     map[string]string              `json:"labels,omitempty"`
 }
 
-type KuadrantOASInfoExtension struct {
+type KuadrantOASRootExtension struct {
 	Route *RouteObject `json:"route,omitempty"`
 }
 
-func NewKuadrantOASInfoExtension(info *openapi3.Info) (*KuadrantOASInfoExtension, error) {
-	type KuadrantOASInfoObject struct {
+func NewKuadrantOASRootExtension(doc *openapi3.T) (*KuadrantOASRootExtension, error) {
+	type KuadrantOASRootObject struct {
 		// Kuadrant extension
-		Kuadrant *KuadrantOASInfoExtension `json:"x-kuadrant,omitempty"`
+		Kuadrant *KuadrantOASRootExtension `json:"x-kuadrant,omitempty"`
 	}
 
-	data, err := info.MarshalJSON()
+	data, err := doc.MarshalJSON()
 	if err != nil {
 		return nil, err
 	}
 
-	var x KuadrantOASInfoObject
+	var x KuadrantOASRootObject
 	if err := json.Unmarshal(data, &x); err != nil {
 		return nil, err
 	}
