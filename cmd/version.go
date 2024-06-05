@@ -7,7 +7,6 @@ import (
 
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 	"github.com/kuadrant/kuadrantctl/version"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func versionCommand() *cobra.Command {
@@ -21,7 +20,7 @@ func versionCommand() *cobra.Command {
 				return err
 			}
 
-			logf.Log.Info(fmt.Sprintf("kuadrantctl version: %s", version.Version))
+			fmt.Println("kuadrantctl", version.Version)
 			return nil
 		},
 	}
