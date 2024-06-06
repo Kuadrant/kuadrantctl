@@ -1,20 +1,20 @@
 ## Generate Kuadrant RateLimitPolicy object from OpenAPI 3
 
-The `kuadrantctl generate kuadrant ratelimitpolicy` command generates an [Kuadrant RateLimitPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/rate-limiting/)
-from your [OpenAPI Specification (OAS) 3.x](https://spec.openapis.org/oas/latest.html) powered with [kuadrant extensions](openapi-kuadrant-extensions.md).
+The `kuadrantctl generate kuadrant ratelimitpolicy` command generates a [Kuadrant RateLimitPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/rate-limiting/)
+from your [OpenAPI Specification (OAS) 3.x document](https://spec.openapis.org/oas/latest.html) powered with [Kuadrant extensions](openapi-kuadrant-extensions.md).
 
 ### OpenAPI specification
 
-An OpenAPI document resource can be provided to the cli by one of the following channels:
+An OpenAPI document resource can be provided to the Kuadrant CLI in one of the following ways:
 
 * Filename in the available path.
 * URL format (supported schemes are HTTP and HTTPS). The CLI will try to download from the given address.
-* Read from stdin standard input stream.
+* Read from `stdin` standard input stream.
 
 ### Usage
 
 ```shell
-Generate Kuadrant RateLimitPolicy from OpenAPI 3.0.X
+Generate Kuadrant RateLimitPolicy from OpenAPI 3.0.x
 
 Usage:
   kuadrantctl generate kuadrant ratelimitpolicy [flags]
@@ -28,31 +28,31 @@ Global Flags:
   -v, --verbose   verbose output
 ```
 
-> Under the example folder there are examples of OAS 3 that can be used to generate the resources
+> **Note**: The `kuadrantctl/examples` directory in GitHub includes sample OAS 3 files that you can use to generate the resources.
 
-### User Guide
+### Procedure
 
-* Clone the repo 
+1. Clone the Git repository as follows: 
 ```bash
 git clone https://github.com/Kuadrant/kuadrantctl.git
 cd kuadrantctl
-```
-* Setup a cluster, Istio and Gateway API CRDs and Kuadrant
+ ```
+2. Set up a cluster, Istio and Gateway API CRDs, and Kuadrant as follows: 
 
-Use our single-cluster quick start script - this will install Kuadrant in a local `kind` cluster: https://docs.kuadrant.io/getting-started-single-cluster/
+* Use the single-cluster quick start script to install Kuadrant in a local `kind` cluster: https://docs.kuadrant.io/getting-started-single-cluster/.
 
-* Build and install CLI in `bin/kuadrantctl` path
+3. Build and install the CLI in `bin/kuadrantctl` path as follows:
 ```bash
 make install
 ```
 
-* Deploy petstore backend API
+4. Deploy the Petstore backend API as follows:
 ```bash
 kubectl create namespace petstore
 kubectl apply -n petstore -f examples/petstore/petstore.yaml
 ```
-* Let's create Petstore's OpenAPI spec
 
+5. Create the Petstore OpenAPI definition as follows:
 <details>
 
 ```yaml
@@ -129,46 +129,44 @@ paths:
           description: "invalid input"
 EOF
 ```
-
 </details>
 
-> **NOTE**: `servers` base path not included. WIP in following up PRs.
+> **Note**: The `servers` base path is not included. WIP in following up PRs.
 
-| Operation | Applied config |
+| Operation | Applied configuration |
 | --- | --- |
-| `GET /cat` | It should return 200 Ok and be rate limited (1 req / 10 seconds)  |
-| `POST /cat`  | Not added to the HTTPRoute. It should return 404 Not Found  |
-| `GET /dog`  | It should return 200 Ok and be rate limited (3 req / 10 seconds) |
-| `POST /dog`   | It should return 200 Ok and NOT rate limited  |
+| `GET /cat` | Should return 200 OK and be rate limited (1 req / 10 seconds). |
+| `POST /cat`  | Not added to the HTTPRoute. Should return 404 Not Found. |
+| `GET /dog`  | Should return 200 OK and be rate limited (3 req / 10 seconds). |
+| `POST /dog`   | Should return 200 OK and NOT rate limited. |
 
 
-* Create the HTTPRoute using the CLI
+6. Create the HTTPRoute by using the CLI as follows:
 ```bash
 bin/kuadrantctl generate gatewayapi httproute --oas petstore-openapi.yaml | kubectl apply -n petstore -f -
 ```
 
-* Create the Rate Limit Policy
+7. Create the rate limit policy as follows:
 ```bash
 bin/kuadrantctl generate kuadrant ratelimitpolicy --oas petstore-openapi.yaml | kubectl apply -n petstore -f -
 ```
 
-* Test OpenAPI endpoints
-  * `GET /cat` -> It should return 200 Ok and be rate limited (1 req / 10 seconds)
+8. Test the OpenAPI endpoints as follows:
 
+  * `GET /cat` - Should return 200 OK and be rate limited (1 req / 10 seconds).
 ```bash
 curl --resolve example.com:9080:127.0.0.1 -v "http://example.com:9080/cat"
 ```
-  *   `POST /cat` -> Not added to the HTTPRoute. It should return 404 Not Found
+  *   `POST /cat` - Not added to the HTTPRoute. Should return 404 Not Found.
 ```bash
 curl --resolve example.com:9080:127.0.0.1 -v -X POST "http://example.com:9080/cat"
 ```
-  * `GET /dog` -> It should return 200 Ok and be rate limited (3 req / 10 seconds)
+  * `GET /dog` - Should return 200 OK and be rate limited (3 req / 10 seconds).
 
 ```bash
 curl --resolve example.com:9080:127.0.0.1 -v "http://example.com:9080/dog"
 ```
-
-   *  `POST /dog` -> It should return 200 Ok and NOT rate limited
+  *  `POST /dog` - Should return 200 OK and NOT rate limited.
 
 ```bash
 curl --resolve example.com:9080:127.0.0.1 -v -X POST "http://example.com:9080/dog"

@@ -1,10 +1,10 @@
 # OpenAPI 3.0.x Kuadrant extensions
 
-This reference information shows examples of how to add Kuadrant extensions at the `info`, path, and operation level in an OpenAPI 3.0.x definition. 
+This reference information shows examples of how to add Kuadrant extensions at the root, path, or operation level in an OpenAPI 3.0.x definition. 
 
-## Info-level Kuadrant extension
+## Root-level Kuadrant extension
 
-You can add a Kuadrant extension at the `info` level of an OpenAPI definition. The following example shows an extension added for a `petstore` app:
+You can add a Kuadrant extension at the root level of an OpenAPI definition. The following example shows an extension added for a `petstore` app:
 
 ```yaml
 x-kuadrant:
