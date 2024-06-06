@@ -62,7 +62,7 @@ openapi: "3.0.3"
 info:
   title: "Pet Store API"
   version: "1.0.0"
-x-kuadrant:
+x-kuadrant:  ## Root-level Kuadrant extension
   route:
     name: "petstore"
     namespace: "petstore"
@@ -75,7 +75,7 @@ servers:
   - url: https://example.io/v1
 paths:
   /cat:
-    x-kuadrant:  ## Path level Kuadrant Extension
+    x-kuadrant:  ## Path-level Kuadrant extension
       backendRefs:
         - name: petstore
           port: 80
@@ -101,7 +101,7 @@ paths:
           description: "invalid input"
   /dog:
     get:  # Added to the route and rate limited
-      x-kuadrant:  ## Operation level Kuadrant Extension
+      x-kuadrant:  ## Operation-level Kuadrant extension
         backendRefs:
           - name: petstore
             port: 80
@@ -118,7 +118,7 @@ paths:
         405:
           description: "invalid input"
     post:  # Added to the route and NOT rate limited
-      x-kuadrant:  ## Operation level Kuadrant Extension
+      x-kuadrant:  ## Operation-level Kuadrant extension
         backendRefs:
           - name: petstore
             port: 80
@@ -131,7 +131,7 @@ EOF
 ```
 </details>
 
-> **Note**: The `servers` base path is not included. WIP in following up PRs.
+> **Note**: The `servers` base path is not included. This is work-in-progress in follow-up PRs.
 
 | Operation | Applied configuration |
 | --- | --- |
