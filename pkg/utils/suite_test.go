@@ -1,4 +1,4 @@
-package cmd
+package utils
 
 import (
 	"testing"
@@ -10,9 +10,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-func TestCommands(t *testing.T) {
+func TestUtils(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Commands Suite")
+	RunSpecs(t, "Utils Suite")
 }
 
 var _ = BeforeSuite(func() {

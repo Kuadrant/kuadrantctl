@@ -4,92 +4,79 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
-	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	"github.com/kuadrant/kuadrantctl/pkg/utils"
 )
 
 func HTTPRouteObjectMetaFromOAS(doc *openapi3.T) metav1.ObjectMeta {
-	if doc.Info == nil {
-		return metav1.ObjectMeta{}
-	}
-
-	kuadrantInfoExtension, err := utils.NewKuadrantOASInfoExtension(doc.Info)
+	kuadrantRootExtension, err := utils.NewKuadrantOASRootExtension(doc)
 	if err != nil {
 		panic(err)
 	}
 
-	if kuadrantInfoExtension == nil {
+	if kuadrantRootExtension == nil {
 		return metav1.ObjectMeta{}
 	}
 
-	if kuadrantInfoExtension.Route == nil {
-		panic("info kuadrant extension route not found")
+	if kuadrantRootExtension.Route == nil {
+		panic("openapi root kuadrant extension route not found")
 	}
 
-	if kuadrantInfoExtension.Route.Name == nil {
-		panic("info kuadrant extension route name not found")
+	if kuadrantRootExtension.Route.Name == nil {
+		panic("openapi root kuadrant extension route name not found")
 	}
 
 	om := metav1.ObjectMeta{
-		Name:   *kuadrantInfoExtension.Route.Name,
-		Labels: kuadrantInfoExtension.Route.Labels,
+		Name:   *kuadrantRootExtension.Route.Name,
+		Labels: kuadrantRootExtension.Route.Labels,
 	}
 
-	if kuadrantInfoExtension.Route.Namespace != nil {
-		om.Namespace = *kuadrantInfoExtension.Route.Namespace
+	if kuadrantRootExtension.Route.Namespace != nil {
+		om.Namespace = *kuadrantRootExtension.Route.Namespace
 	}
 
 	return om
 }
 
-func HTTPRouteGatewayParentRefsFromOAS(doc *openapi3.T) []gatewayapiv1beta1.ParentReference {
-	if doc.Info == nil {
-		return nil
-	}
-
-	kuadrantInfoExtension, err := utils.NewKuadrantOASInfoExtension(doc.Info)
-
+func HTTPRouteGatewayParentRefsFromOAS(doc *openapi3.T) []gatewayapiv1.ParentReference {
+	kuadrantRootExtension, err := utils.NewKuadrantOASRootExtension(doc)
 	if err != nil {
 		panic(err)
 	}
 
-	if kuadrantInfoExtension == nil {
+	if kuadrantRootExtension == nil {
 		return nil
 	}
 
-	if kuadrantInfoExtension.Route == nil {
-		panic("info kuadrant extension route not found")
+	if kuadrantRootExtension.Route == nil {
+		panic("openapi root kuadrant extension route not found")
 	}
 
-	return kuadrantInfoExtension.Route.ParentRefs
+	return kuadrantRootExtension.Route.ParentRefs
 }
 
-func HTTPRouteHostnamesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.Hostname {
-	if doc.Info == nil {
-		return nil
-	}
-
-	kuadrantInfoExtension, err := utils.NewKuadrantOASInfoExtension(doc.Info)
+func HTTPRouteHostnamesFromOAS(doc *openapi3.T) []gatewayapiv1.Hostname {
+	kuadrantRootExtension, err := utils.NewKuadrantOASRootExtension(doc)
 	if err != nil {
 		panic(err)
 	}
 
-	if kuadrantInfoExtension == nil {
+	if kuadrantRootExtension == nil {
 		return nil
 	}
 
-	if kuadrantInfoExtension.Route == nil {
-		panic("info kuadrant extension route not found")
+	if kuadrantRootExtension.Route == nil {
+		panic("openapi root kuadrant extension route not found")
 	}
 
-	return kuadrantInfoExtension.Route.Hostnames
+	return kuadrantRootExtension.Route.Hostnames
 }
 
-func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
+func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1.HTTPRouteRule {
 	// Current implementation, one rule per operation
 	// TODO(eguzki): consider about grouping operations as HTTPRouteMatch objects in fewer HTTPRouteRule objects
-	rules := make([]gatewayapiv1beta1.HTTPRouteRule, 0)
+	rules := make([]gatewayapiv1.HTTPRouteRule, 0)
 
 	basePath, err := utils.BasePathFromOpenAPI(doc)
 	if err != nil {
@@ -138,11 +125,11 @@ func HTTPRouteRulesFromOAS(doc *openapi3.T) []gatewayapiv1beta1.HTTPRouteRule {
 	return rules
 }
 
-func buildHTTPRouteRule(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, backendRefs []gatewayapiv1beta1.HTTPBackendRef, pathMatchType gatewayapiv1beta1.PathMatchType) gatewayapiv1beta1.HTTPRouteRule {
+func buildHTTPRouteRule(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, backendRefs []gatewayapiv1.HTTPBackendRef, pathMatchType gatewayapiv1.PathMatchType) gatewayapiv1.HTTPRouteRule {
 	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op, pathMatchType)
 
-	return gatewayapiv1beta1.HTTPRouteRule{
+	return gatewayapiv1.HTTPRouteRule{
 		BackendRefs: backendRefs,
-		Matches:     []gatewayapiv1beta1.HTTPRouteMatch{match},
+		Matches:     []gatewayapiv1.HTTPRouteMatch{match},
 	}
 }

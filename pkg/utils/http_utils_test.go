@@ -16,32 +16,22 @@ limitations under the License.
 package utils
 
 import (
-	"fmt"
-	"testing"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func TestIsURL(t *testing.T) {
-	cases := []struct {
-		url      string
-		expected bool
-	}{
-		{"", false},
-		{"https", false},
-		{"https://", false},
-		{"http://www", true},
-		{"http://www.example.com/resources/a.yaml", true},
-		{"https://www.example.com:443/resources/a.yaml", true},
-		{"/home/testing-path.yaml", false},
-		{"testing-path.yaml", false},
-		{"alskjff#?asf//dfas", false},
-	}
-
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("test-%d", i), func(subT *testing.T) {
-			_, res := ParseURL(tc.url)
-			if res != tc.expected {
-				subT.Errorf("\"%s\": Expecting from IsURL %t and got %t", tc.url, tc.expected, res)
-			}
-		})
-	}
-}
+var _ = DescribeTable("IsURL",
+	func(url string, expected bool) {
+		_, res := ParseURL(url)
+		Expect(res).To(Equal(expected))
+	},
+	Entry("Empty URL", "", false),
+	Entry("only schema", "https", false),
+	Entry("only schema", "https://", false),
+	Entry("only schema", "http://www", true),
+	Entry("only schema", "http://www.example.com/resources/a.yaml", true),
+	Entry("only schema", "https://www.example.com:443/resources/a.yaml", true),
+	Entry("only schema", "/home/testing-path.yaml", false),
+	Entry("only schema", "testing-path.yaml", false),
+	Entry("only schema", "alskjff#?asf//dfas", false),
+)

@@ -4,35 +4,36 @@ import (
 	"encoding/json"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
 	"k8s.io/utils/ptr"
-	gatewayapiv1beta1 "sigs.k8s.io/gateway-api/apis/v1beta1"
+	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
+
+	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
 )
 
 type RouteObject struct {
-	Name       *string                             `json:"name,omitempty"`
-	Namespace  *string                             `json:"namespace,omitempty"`
-	Hostnames  []gatewayapiv1beta1.Hostname        `json:"hostnames,omitempty"`
-	ParentRefs []gatewayapiv1beta1.ParentReference `json:"parentRefs,omitempty"`
-	Labels     map[string]string                   `json:"labels,omitempty"`
+	Name       *string                        `json:"name,omitempty"`
+	Namespace  *string                        `json:"namespace,omitempty"`
+	Hostnames  []gatewayapiv1.Hostname        `json:"hostnames,omitempty"`
+	ParentRefs []gatewayapiv1.ParentReference `json:"parentRefs,omitempty"`
+	Labels     map[string]string              `json:"labels,omitempty"`
 }
 
-type KuadrantOASInfoExtension struct {
+type KuadrantOASRootExtension struct {
 	Route *RouteObject `json:"route,omitempty"`
 }
 
-func NewKuadrantOASInfoExtension(info *openapi3.Info) (*KuadrantOASInfoExtension, error) {
-	type KuadrantOASInfoObject struct {
+func NewKuadrantOASRootExtension(doc *openapi3.T) (*KuadrantOASRootExtension, error) {
+	type KuadrantOASRootObject struct {
 		// Kuadrant extension
-		Kuadrant *KuadrantOASInfoExtension `json:"x-kuadrant,omitempty"`
+		Kuadrant *KuadrantOASRootExtension `json:"x-kuadrant,omitempty"`
 	}
 
-	data, err := info.MarshalJSON()
+	data, err := doc.MarshalJSON()
 	if err != nil {
 		return nil, err
 	}
 
-	var x KuadrantOASInfoObject
+	var x KuadrantOASRootObject
 	if err := json.Unmarshal(data, &x); err != nil {
 		return nil, err
 	}
@@ -49,10 +50,10 @@ type KuadrantRateLimitExtension struct {
 }
 
 type KuadrantOASPathExtension struct {
-	Disable       *bool                              `json:"disable,omitempty"`
-	PathMatchType *gatewayapiv1beta1.PathMatchType   `json:"pathMatchType,omitempty"`
-	BackendRefs   []gatewayapiv1beta1.HTTPBackendRef `json:"backendRefs,omitempty"`
-	RateLimit     *KuadrantRateLimitExtension        `json:"rate_limit,omitempty"`
+	Disable       *bool                         `json:"disable,omitempty"`
+	PathMatchType *gatewayapiv1.PathMatchType   `json:"pathMatchType,omitempty"`
+	BackendRefs   []gatewayapiv1.HTTPBackendRef `json:"backendRefs,omitempty"`
+	RateLimit     *KuadrantRateLimitExtension   `json:"rate_limit,omitempty"`
 }
 
 func (k *KuadrantOASPathExtension) IsDisabled() bool {
@@ -60,9 +61,9 @@ func (k *KuadrantOASPathExtension) IsDisabled() bool {
 	return ptr.Deref(k.Disable, false)
 }
 
-func (k *KuadrantOASPathExtension) GetPathMatchType() gatewayapiv1beta1.PathMatchType {
+func (k *KuadrantOASPathExtension) GetPathMatchType() gatewayapiv1.PathMatchType {
 	// Set default
-	return ptr.Deref(k.PathMatchType, gatewayapiv1beta1.PathMatchExact)
+	return ptr.Deref(k.PathMatchType, gatewayapiv1.PathMatchExact)
 }
 
 func NewKuadrantOASPathExtension(pathItem *openapi3.PathItem) (*KuadrantOASPathExtension, error) {
