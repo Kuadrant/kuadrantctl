@@ -4,7 +4,6 @@ MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 GO ?= go
 KUADRANT_NAMESPACE=kuadrant-system
-VERSION := $(shell git rev-parse --short=7 HEAD)
 
 all: help
 
@@ -56,11 +55,29 @@ test: clean-cov fmt vet $(GINKGO)
 ## install: Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 .PHONY : install
 install: fmt vet
-ifneq ($(VERSION),)
-	GOBIN=$(PROJECT_PATH)/bin $(GO) install -ldflags "-X 'github.com/kuadrant/kuadrantctl/version.Version=dev - $(VERSION)'" 
-else
-	GOBIN=$(PROJECT_PATH)/bin $(GO) install
-endif
+	@set -e; \
+	GIT_SHA=$$(git rev-parse --short=7 HEAD 2>/dev/null) || { \
+		GIT_HASH=$${GITHUB_SHA:-NO_SHA}; \
+		IS_DIRTY=false; \
+	}; \
+	if [ -z "$$GIT_HASH" ]; then \
+		GIT_DIRTY=$$(git diff --stat); \
+		if [ -n "$$GIT_DIRTY" ]; then \
+			GIT_HASH=$${GIT_SHA}-dirty; \
+			IS_DIRTY=true; \
+		else \
+			GIT_HASH=$${GIT_SHA}; \
+			IS_DIRTY=false; \
+		fi; \
+	fi; \
+	LDFLAGS="-X 'github.com/kuadrant/kuadrantctl/version.GitHash=$$GIT_HASH'"; \
+	if [ "$$IS_DIRTY" = true ]; then \
+		LDFLAGS="$$LDFLAGS -X 'github.com/kuadrant/kuadrantctl/version.GitDirty=true'"; \
+	else \
+		LDFLAGS="$$LDFLAGS -X 'github.com/kuadrant/kuadrantctl/version.GitDirty=false'"; \
+	fi; \
+	GOBIN=$(PROJECT_PATH)/bin $(GO) install -ldflags "$$LDFLAGS";
+
 
 .PHONY: prepare-local-cluster
 prepare-local-cluster: $(KIND) ## Deploy locally kuadrant operator from the current code
