@@ -3,7 +3,6 @@ SHELL := /bin/bash
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 GO ?= go
-KUADRANT_NAMESPACE=kuadrant-system
 
 all: help
 
