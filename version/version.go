@@ -16,5 +16,8 @@ limitations under the License.
 package version
 
 var (
-	Version = "v0.0.0"
+	// This variable shows the commit hash of the repo so they can confirm they are on latest or specific version of the branch.
+	GitHash string
+	// This variable is dependent on what the current release is e.g. if it is v0.2.3 then this variable, outside of releases, will be v0.2.4-dev .
+	Version = "v0.2.4-dev"
 )

@@ -20,7 +20,7 @@ func versionCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Println("kuadrantctl", version.Version)
+			fmt.Printf("kuadrantctl %s (%s)\n", version.Version, version.GitHash)
 			return nil
 		},
 	}
