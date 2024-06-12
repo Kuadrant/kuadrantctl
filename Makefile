@@ -71,11 +71,6 @@ install: fmt vet
 		fi; \
 	fi; \
 	LDFLAGS="-X 'github.com/kuadrant/kuadrantctl/version.GitHash=$$GIT_HASH'"; \
-	if [ "$$IS_DIRTY" = true ]; then \
-		LDFLAGS="$$LDFLAGS -X 'github.com/kuadrant/kuadrantctl/version.GitDirty=true'"; \
-	else \
-		LDFLAGS="$$LDFLAGS -X 'github.com/kuadrant/kuadrantctl/version.GitDirty=false'"; \
-	fi; \
 	GOBIN=$(PROJECT_PATH)/bin $(GO) install -ldflags "$$LDFLAGS";
 
 
