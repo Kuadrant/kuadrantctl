@@ -339,7 +339,7 @@ spec:
       protocol: HTTP
 EOF
 ```
-* Get the IP 
+* Get the IP of the Gateway:
 
 ```bash
 export INGRESS_IP=$(kubectl get -n istio-system Service/istio-ingressgateway-istio -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
