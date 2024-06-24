@@ -45,7 +45,7 @@ components:
       openIdConnectUrl: https://sso.example.com/auth/realms/petstore
 ```
 
-Take this example and save it as `example.yaml` and than run the command:
+Take this example and save it as `example.yaml` and then run the command:
 
 ```bash
 kuadrantctl generate kuadrant authpolicy --oas example.yaml
@@ -103,7 +103,7 @@ components:
       in: query
 ```
 
-Take this example and save it as `example.yaml` and than run the command:
+Take this example and save it as `example.yaml` and then run the command:
 
 ```bash
 kuadrantctl generate kuadrant authpolicy --oas example.yaml
