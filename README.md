@@ -35,7 +35,6 @@ This will compile `kuadrantctl` and install it in the `bin` directory at root of
 kuadrantctl [command] [subcommand] [flags]
 ```
 
-
 ### Commands Overview
 
 | Command      | Description                                                |
