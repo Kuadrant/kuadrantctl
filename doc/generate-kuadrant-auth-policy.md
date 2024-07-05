@@ -1,6 +1,6 @@
 ## Generate Kuadrant AuthPolicy object from OpenAPI 3
 
-The `kuadrantctl generate kuadrant authpolicy` command generates an [Kuadrant AuthPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/auth/)
+The `kuadrantctl generate kuadrant authpolicy` command generates an [Kuadrant AuthPolicy](https://docs.kuadrant.io/latest/kuadrant-operator/doc/auth/)
 from your [OpenAPI Specification (OAS) 3.x](https://spec.openapis.org/oas/latest.html) powered with [kuadrant extensions](openapi-kuadrant-extensions.md).
 
 ### OpenAPI specification
@@ -160,7 +160,7 @@ type: Opaque
 ```
 > **Note**: Kuadrant validates tokens against api keys found in secrets. The label selector format `kuadrant.io/apikeys-by: ${sec scheme name}` is arbitrary and designed for this CLI command.
 
-For more information about Kuadrant auth based on api key: https://docs.kuadrant.io/authorino/docs/user-guides/api-key-authentication/
+For more information about Kuadrant auth based on api key: https://docs.kuadrant.io/latest/authorino/docs/user-guides/api-key-authentication/
 
 ### Usage
 
@@ -213,7 +213,7 @@ cd kuadrantctl
 
 * Setup a cluster, Istio and Gateway API CRDs and Kuadrant
 
-Use our single-cluster quick start script - this will install Kuadrant in a local `kind` cluster: https://docs.kuadrant.io/getting-started-single-cluster/
+Use our single-cluster quick start script - this will install Kuadrant in a local `kind` cluster: https://docs.kuadrant.io/latest/getting-started-single-cluster/
 
 * Build and install CLI in `bin/kuadrantctl` path
 

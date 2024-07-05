@@ -1,6 +1,6 @@
 ## Generate Kuadrant RateLimitPolicy object from OpenAPI 3
 
-The `kuadrantctl generate kuadrant ratelimitpolicy` command generates a [Kuadrant RateLimitPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/rate-limiting/)
+The `kuadrantctl generate kuadrant ratelimitpolicy` command generates a [Kuadrant RateLimitPolicy](https://docs.kuadrant.io/latest/kuadrant-operator/doc/rate-limiting/)
 from your [OpenAPI Specification (OAS) 3.x document](https://spec.openapis.org/oas/latest.html) powered with [Kuadrant extensions](openapi-kuadrant-extensions.md).
 
 ### OpenAPI specification
@@ -39,7 +39,7 @@ cd kuadrantctl
  ```
 2. Set up a cluster, Istio and Gateway API CRDs, and Kuadrant as follows: 
 
-* Use the single-cluster quick start script to install Kuadrant in a local `kind` cluster: https://docs.kuadrant.io/getting-started-single-cluster/.
+* Use the single-cluster quick start script to install Kuadrant in a local `kind` cluster: https://docs.kuadrant.io/latest/getting-started-single-cluster/.
 
 3. Build and install the CLI in `bin/kuadrantctl` path as follows:
 ```bash

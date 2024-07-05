@@ -39,7 +39,7 @@ For more details, see [Generate Gateway API HTTPRoute object from OpenAPI 3](./g
 
 #### Generate an AuthPolicy
 
-To generate an [AuthPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/auth/), add a `securityScheme` to the `components` block in your API definition. The following `securityScheme` requires that an API key header is set:
+To generate an [AuthPolicy](https://docs.kuadrant.io/latest/kuadrant-operator/doc/auth/), add a `securityScheme` to the `components` block in your API definition. The following `securityScheme` requires that an API key header is set:
 
 ```yaml
     securitySchemes:
@@ -59,7 +59,7 @@ For more details, see [Generate Kuadrant AuthPolicy object from OpenAPI 3](./gen
 
 #### Generate a RateLimitPolicy
 
-To generate a [RateLimitPolicy](https://docs.kuadrant.io/kuadrant-operator/doc/rate-limiting/) for the API, add the following `x-kuadrant` block to a path in your API definition, replacing values to match your API details.
+To generate a [RateLimitPolicy](https://docs.kuadrant.io/latest/kuadrant-operator/doc/rate-limiting/) for the API, add the following `x-kuadrant` block to a path in your API definition, replacing values to match your API details.
 
 ```yaml
 paths:
