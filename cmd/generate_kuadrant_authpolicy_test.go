@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	authorinoapi "github.com/kuadrant/authorino/api/v1beta2"
-	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
+	kuadrantapiv1 "github.com/kuadrant/kuadrant-operator/api/v1"
 )
 
 var _ = Describe("Generate AuthPolicy", func() {
@@ -47,10 +47,10 @@ var _ = Describe("Generate AuthPolicy", func() {
 			out, err := io.ReadAll(cmdStdoutBuffer)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var kap kuadrantapiv1beta2.AuthPolicy
+			var kap kuadrantapiv1.AuthPolicy
 			Expect(yaml.Unmarshal(out, &kap)).ShouldNot(HaveOccurred())
 			Expect(kap.TypeMeta).To(Equal(metav1.TypeMeta{
-				APIVersion: kuadrantapiv1beta2.GroupVersion.String(), Kind: "AuthPolicy",
+				APIVersion: kuadrantapiv1.GroupVersion.String(), Kind: "AuthPolicy",
 			}))
 			Expect(kap.ObjectMeta).To(Equal(metav1.ObjectMeta{
 				Name:      "petstore",
@@ -63,7 +63,7 @@ var _ = Describe("Generate AuthPolicy", func() {
 				Namespace: ptr.To(gatewayapiv1.Namespace("petstore-ns")),
 			}))
 			Expect(kap.Spec.AuthPolicyCommonSpec.RouteSelectors).To(HaveExactElements(
-				kuadrantapiv1beta2.RouteSelector{
+				kuadrantapiv1.RouteSelector{
 					Matches: []gatewayapiv1.HTTPRouteMatch{
 						{
 							Path: &gatewayapiv1.HTTPPathMatch{
@@ -76,9 +76,9 @@ var _ = Describe("Generate AuthPolicy", func() {
 				},
 			))
 			Expect(kap.Spec.AuthPolicyCommonSpec.AuthScheme).To(Equal(
-				&kuadrantapiv1beta2.AuthSchemeSpec{
-					Authentication: map[string]kuadrantapiv1beta2.AuthenticationSpec{
-						"postDog_securedDog": kuadrantapiv1beta2.AuthenticationSpec{
+				&kuadrantapiv1.AuthSchemeSpec{
+					Authentication: map[string]kuadrantapiv1.AuthenticationSpec{
+						"postDog_securedDog": kuadrantapiv1.AuthenticationSpec{
 							AuthenticationSpec: authorinoapi.AuthenticationSpec{
 								Credentials: authorinoapi.Credentials{},
 								AuthenticationMethodSpec: authorinoapi.AuthenticationMethodSpec{
@@ -87,8 +87,8 @@ var _ = Describe("Generate AuthPolicy", func() {
 									},
 								},
 							},
-							CommonAuthRuleSpec: kuadrantapiv1beta2.CommonAuthRuleSpec{
-								RouteSelectors: []kuadrantapiv1beta2.RouteSelector{
+							CommonAuthRuleSpec: kuadrantapiv1.CommonAuthRuleSpec{
+								RouteSelectors: []kuadrantapiv1.RouteSelector{
 									{
 										Matches: []gatewayapiv1.HTTPRouteMatch{
 											{

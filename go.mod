@@ -6,7 +6,7 @@ require (
 	github.com/getkin/kin-openapi v0.120.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/kuadrant/authorino v0.15.0
-	github.com/kuadrant/kuadrant-operator v0.7.1
+	github.com/kuadrant/kuadrant-operator v0.11.0
 	github.com/onsi/ginkgo/v2 v2.13.2
 	github.com/onsi/gomega v1.30.0
 	github.com/operator-framework/api v0.19.0

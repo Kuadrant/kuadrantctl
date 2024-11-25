@@ -6,7 +6,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/ghodss/yaml"
-	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
+	kuadrantapiv1 "github.com/kuadrant/kuadrant-operator/api/v1"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -80,24 +80,24 @@ func runGenerateKuadrantAuthPolicy(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func buildAuthPolicy(doc *openapi3.T) *kuadrantapiv1beta2.AuthPolicy {
+func buildAuthPolicy(doc *openapi3.T) *kuadrantapiv1.AuthPolicy {
 	routeMeta := gatewayapi.HTTPRouteObjectMetaFromOAS(doc)
 
-	ap := &kuadrantapiv1beta2.AuthPolicy{
+	ap := &kuadrantapiv1.AuthPolicy{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "kuadrant.io/v1beta2",
 			Kind:       "AuthPolicy",
 		},
 		ObjectMeta: kuadrantapi.AuthPolicyObjectMetaFromOAS(doc),
-		Spec: kuadrantapiv1beta2.AuthPolicySpec{
+		Spec: kuadrantapiv1.AuthPolicySpec{
 			TargetRef: gatewayapiv1alpha2.PolicyTargetReference{
 				Group: gatewayapiv1.GroupName,
 				Kind:  gatewayapiv1.Kind("HTTPRoute"),
 				Name:  gatewayapiv1.ObjectName(routeMeta.Name),
 			},
 			// Currently only authentication rules enforced
-			AuthPolicyCommonSpec: kuadrantapiv1beta2.AuthPolicyCommonSpec{
-				AuthScheme: &kuadrantapiv1beta2.AuthSchemeSpec{
+			AuthPolicyCommonSpec: kuadrantapiv1.AuthPolicyCommonSpec{
+				AuthScheme: &kuadrantapiv1.AuthSchemeSpec{
 					Authentication: kuadrantapi.AuthPolicyAuthenticationSchemeFromOAS(doc),
 				},
 				RouteSelectors: kuadrantapi.AuthPolicyTopRouteSelectorsFromOAS(doc),

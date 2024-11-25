@@ -7,7 +7,7 @@ import (
 	"k8s.io/utils/ptr"
 	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
 
-	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
+	kuadrantapiv1 "github.com/kuadrant/kuadrant-operator/api/v1"
 )
 
 type RouteObject struct {
@@ -42,11 +42,11 @@ func NewKuadrantOASRootExtension(doc *openapi3.T) (*KuadrantOASRootExtension, er
 }
 
 type KuadrantRateLimitExtension struct {
-	When []kuadrantapiv1beta2.WhenCondition `json:"when,omitempty"`
+	When []kuadrantapiv1.WhenCondition `json:"when,omitempty"`
 
-	Counters []kuadrantapiv1beta2.ContextSelector `json:"counters,omitempty"`
+	Counters []kuadrantapiv1.ContextSelector `json:"counters,omitempty"`
 
-	Rates []kuadrantapiv1beta2.Rate `json:"rates,omitempty"`
+	Rates []kuadrantapiv1.Rate `json:"rates,omitempty"`
 }
 
 type KuadrantOASPathExtension struct {

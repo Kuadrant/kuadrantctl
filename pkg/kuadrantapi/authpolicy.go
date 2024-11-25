@@ -6,7 +6,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	authorinoapi "github.com/kuadrant/authorino/api/v1beta2"
-	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
+	kuadrantapiv1 "github.com/kuadrant/kuadrant-operator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -23,18 +23,18 @@ func AuthPolicyObjectMetaFromOAS(doc *openapi3.T) metav1.ObjectMeta {
 	return gatewayapi.HTTPRouteObjectMetaFromOAS(doc)
 }
 
-func buildAuthPolicyRouteSelectors(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType) []kuadrantapiv1beta2.RouteSelector {
+func buildAuthPolicyRouteSelectors(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType) []kuadrantapiv1.RouteSelector {
 	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op, pathMatchType)
 
-	return []kuadrantapiv1beta2.RouteSelector{
+	return []kuadrantapiv1.RouteSelector{
 		{
 			Matches: []gatewayapiv1.HTTPRouteMatch{match},
 		},
 	}
 }
 
-func AuthPolicyTopRouteSelectorsFromOAS(doc *openapi3.T) []kuadrantapiv1beta2.RouteSelector {
-	routeSelectors := make([]kuadrantapiv1beta2.RouteSelector, 0)
+func AuthPolicyTopRouteSelectorsFromOAS(doc *openapi3.T) []kuadrantapiv1.RouteSelector {
+	routeSelectors := make([]kuadrantapiv1.RouteSelector, 0)
 
 	basePath, err := utils.BasePathFromOpenAPI(doc)
 	if err != nil {
@@ -87,8 +87,8 @@ func AuthPolicyTopRouteSelectorsFromOAS(doc *openapi3.T) []kuadrantapiv1beta2.Ro
 	return routeSelectors
 }
 
-func AuthPolicyAuthenticationSchemeFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2.AuthenticationSpec {
-	authentication := make(map[string]kuadrantapiv1beta2.AuthenticationSpec)
+func AuthPolicyAuthenticationSchemeFromOAS(doc *openapi3.T) map[string]kuadrantapiv1.AuthenticationSpec {
+	authentication := make(map[string]kuadrantapiv1.AuthenticationSpec)
 
 	basePath, err := utils.BasePathFromOpenAPI(doc)
 	if err != nil {
@@ -143,7 +143,7 @@ func AuthPolicyAuthenticationSchemeFromOAS(doc *openapi3.T) map[string]kuadranta
 	return authentication
 }
 
-func buildOperationAuthentication(doc *openapi3.T, basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType, secRequirements openapi3.SecurityRequirements) map[string]kuadrantapiv1beta2.AuthenticationSpec {
+func buildOperationAuthentication(doc *openapi3.T, basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType, secRequirements openapi3.SecurityRequirements) map[string]kuadrantapiv1.AuthenticationSpec {
 	// OpenAPI supports as security requirement to have multiple security schemes and ALL
 	// of the must be satisfied.
 	// From https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#security-requirement-object
@@ -157,7 +157,7 @@ func buildOperationAuthentication(doc *openapi3.T, basePath, path string, pathIt
 	//   - petstore_api_key: []
 	//   - petstore_oidc: []
 
-	opAuth := make(map[string]kuadrantapiv1beta2.AuthenticationSpec, 0)
+	opAuth := make(map[string]kuadrantapiv1.AuthenticationSpec, 0)
 	for _, secReq := range secRequirements {
 		if len(secReq) > 1 {
 			panic(errors.New("multiple schemes that require ALL must be satisfied, currently not supported"))
@@ -201,7 +201,7 @@ func buildOperationAuthentication(doc *openapi3.T, basePath, path string, pathIt
 	return opAuth
 }
 
-func apiKeyAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType, secSchemeName string, secScheme openapi3.SecurityScheme) kuadrantapiv1beta2.AuthenticationSpec {
+func apiKeyAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType, secSchemeName string, secScheme openapi3.SecurityScheme) kuadrantapiv1.AuthenticationSpec {
 	// From https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#fixed-fields-23
 	// secScheme.In is required
 	// secScheme.Name is required
@@ -217,8 +217,8 @@ func apiKeyAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem
 		credentials.Cookie = &authorinoapi.Named{Name: secScheme.Name}
 	}
 
-	return kuadrantapiv1beta2.AuthenticationSpec{
-		CommonAuthRuleSpec: kuadrantapiv1beta2.CommonAuthRuleSpec{
+	return kuadrantapiv1.AuthenticationSpec{
+		CommonAuthRuleSpec: kuadrantapiv1.CommonAuthRuleSpec{
 			RouteSelectors: buildAuthPolicyRouteSelectors(basePath, path, pathItem, verb, op, pathMatchType),
 		},
 		AuthenticationSpec: authorinoapi.AuthenticationSpec{
@@ -238,9 +238,9 @@ func apiKeyAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem
 	}
 }
 
-func openIDAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType, secScheme openapi3.SecurityScheme) kuadrantapiv1beta2.AuthenticationSpec {
-	return kuadrantapiv1beta2.AuthenticationSpec{
-		CommonAuthRuleSpec: kuadrantapiv1beta2.CommonAuthRuleSpec{
+func openIDAuthenticationSpec(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType, secScheme openapi3.SecurityScheme) kuadrantapiv1.AuthenticationSpec {
+	return kuadrantapiv1.AuthenticationSpec{
+		CommonAuthRuleSpec: kuadrantapiv1.CommonAuthRuleSpec{
 			RouteSelectors: buildAuthPolicyRouteSelectors(basePath, path, pathItem, verb, op, pathMatchType),
 		},
 		AuthenticationSpec: authorinoapi.AuthenticationSpec{

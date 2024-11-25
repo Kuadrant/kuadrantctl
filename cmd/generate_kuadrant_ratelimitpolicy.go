@@ -8,7 +8,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/ghodss/yaml"
 
-	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
+	kuadrantapiv1 "github.com/kuadrant/kuadrant-operator/api/v1"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -83,22 +83,22 @@ func runGenerateKuadrantRateLimitPolicy(cmd *cobra.Command, args []string) error
 	return nil
 }
 
-func buildRateLimitPolicy(doc *openapi3.T) *kuadrantapiv1beta2.RateLimitPolicy {
+func buildRateLimitPolicy(doc *openapi3.T) *kuadrantapiv1.RateLimitPolicy {
 	routeMeta := gatewayapi.HTTPRouteObjectMetaFromOAS(doc)
 
-	rlp := &kuadrantapiv1beta2.RateLimitPolicy{
+	rlp := &kuadrantapiv1.RateLimitPolicy{
 		TypeMeta: v1.TypeMeta{
 			APIVersion: "kuadrant.io/v1beta2",
 			Kind:       "RateLimitPolicy",
 		},
 		ObjectMeta: kuadrantapi.RateLimitPolicyObjectMetaFromOAS(doc),
-		Spec: kuadrantapiv1beta2.RateLimitPolicySpec{
+		Spec: kuadrantapiv1.RateLimitPolicySpec{
 			TargetRef: gatewayapiv1alpha2.PolicyTargetReference{
 				Group: gatewayapiv1.GroupName,
 				Kind:  gatewayapiv1.Kind("HTTPRoute"),
 				Name:  gatewayapiv1.ObjectName(routeMeta.Name),
 			},
-			RateLimitPolicyCommonSpec: kuadrantapiv1beta2.RateLimitPolicyCommonSpec{
+			RateLimitPolicyCommonSpec: kuadrantapiv1.RateLimitPolicyCommonSpec{
 				Limits: kuadrantapi.RateLimitPolicyLimitsFromOAS(doc),
 			},
 		},

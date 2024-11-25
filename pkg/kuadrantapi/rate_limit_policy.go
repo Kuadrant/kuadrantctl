@@ -2,7 +2,7 @@ package kuadrantapi
 
 import (
 	"github.com/getkin/kin-openapi/openapi3"
-	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
+	kuadrantapiv1 "github.com/kuadrant/kuadrant-operator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
@@ -15,11 +15,11 @@ func RateLimitPolicyObjectMetaFromOAS(doc *openapi3.T) metav1.ObjectMeta {
 	return gatewayapi.HTTPRouteObjectMetaFromOAS(doc)
 }
 
-func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2.Limit {
+func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1.Limit {
 	// Current implementation, one limit per operation
 	// TODO(eguzki): consider about grouping operations in fewer RLP limits
 
-	limits := make(map[string]kuadrantapiv1beta2.Limit)
+	limits := make(map[string]kuadrantapiv1.Limit)
 
 	basePath, err := utils.BasePathFromOpenAPI(doc)
 	if err != nil {
@@ -66,7 +66,7 @@ func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2
 
 			limitName := utils.OpenAPIOperationName(path, verb, operation)
 
-			limits[limitName] = kuadrantapiv1beta2.Limit{
+			limits[limitName] = kuadrantapiv1.Limit{
 				RouteSelectors: buildLimitRouteSelectors(basePath, path, pathItem, verb, operation, pathMatchType),
 				When:           rateLimit.When,
 				Counters:       rateLimit.Counters,
@@ -82,10 +82,10 @@ func RateLimitPolicyLimitsFromOAS(doc *openapi3.T) map[string]kuadrantapiv1beta2
 	return limits
 }
 
-func buildLimitRouteSelectors(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType) []kuadrantapiv1beta2.RouteSelector {
+func buildLimitRouteSelectors(basePath, path string, pathItem *openapi3.PathItem, verb string, op *openapi3.Operation, pathMatchType gatewayapiv1.PathMatchType) []kuadrantapiv1.RouteSelector {
 	match := utils.OpenAPIMatcherFromOASOperations(basePath, path, pathItem, verb, op, pathMatchType)
 
-	return []kuadrantapiv1beta2.RouteSelector{
+	return []kuadrantapiv1.RouteSelector{
 		{
 			Matches: []gatewayapiv1.HTTPRouteMatch{match},
 		},

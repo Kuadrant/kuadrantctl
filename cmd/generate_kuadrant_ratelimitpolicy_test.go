@@ -13,7 +13,7 @@ import (
 	gatewayapiv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	"sigs.k8s.io/yaml"
 
-	kuadrantapiv1beta2 "github.com/kuadrant/kuadrant-operator/api/v1beta2"
+	kuadrantapiv1 "github.com/kuadrant/kuadrant-operator/api/v1"
 )
 
 var _ = Describe("Generate Ratelimitpolicy", func() {
@@ -46,10 +46,10 @@ var _ = Describe("Generate Ratelimitpolicy", func() {
 			out, err := io.ReadAll(cmdStdoutBuffer)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			var rlp kuadrantapiv1beta2.RateLimitPolicy
+			var rlp kuadrantapiv1.RateLimitPolicy
 			Expect(yaml.Unmarshal(out, &rlp)).ShouldNot(HaveOccurred())
 			Expect(rlp.TypeMeta).To(Equal(metav1.TypeMeta{
-				APIVersion: kuadrantapiv1beta2.GroupVersion.String(), Kind: "RateLimitPolicy",
+				APIVersion: kuadrantapiv1.GroupVersion.String(), Kind: "RateLimitPolicy",
 			}))
 			Expect(rlp.ObjectMeta).To(Equal(metav1.ObjectMeta{
 				Name:      "petstore",
@@ -62,11 +62,11 @@ var _ = Describe("Generate Ratelimitpolicy", func() {
 				Namespace: ptr.To(gatewayapiv1.Namespace("petstore-ns")),
 			}))
 			Expect(rlp.Spec.RateLimitPolicyCommonSpec.Limits).To(HaveLen(2))
-			Expect(rlp.Spec.RateLimitPolicyCommonSpec.Limits).To(HaveKeyWithValue("getCat", kuadrantapiv1beta2.Limit{
-				Counters: []kuadrantapiv1beta2.ContextSelector{
+			Expect(rlp.Spec.RateLimitPolicyCommonSpec.Limits).To(HaveKeyWithValue("getCat", kuadrantapiv1.Limit{
+				Counters: []kuadrantapiv1.ContextSelector{
 					"request.headers.x-forwarded-for",
 				},
-				RouteSelectors: []kuadrantapiv1beta2.RouteSelector{
+				RouteSelectors: []kuadrantapiv1.RouteSelector{
 					{
 						Matches: []gatewayapiv1.HTTPRouteMatch{
 							{
@@ -79,19 +79,19 @@ var _ = Describe("Generate Ratelimitpolicy", func() {
 						},
 					},
 				},
-				Rates: []kuadrantapiv1beta2.Rate{
+				Rates: []kuadrantapiv1.Rate{
 					{
 						Limit:    1,
 						Duration: 10,
-						Unit:     kuadrantapiv1beta2.TimeUnit("second"),
+						Unit:     kuadrantapiv1.TimeUnit("second"),
 					},
 				},
 			}))
-			Expect(rlp.Spec.RateLimitPolicyCommonSpec.Limits).To(HaveKeyWithValue("getDog", kuadrantapiv1beta2.Limit{
-				Counters: []kuadrantapiv1beta2.ContextSelector{
+			Expect(rlp.Spec.RateLimitPolicyCommonSpec.Limits).To(HaveKeyWithValue("getDog", kuadrantapiv1.Limit{
+				Counters: []kuadrantapiv1.ContextSelector{
 					"request.headers.x-forwarded-for",
 				},
-				RouteSelectors: []kuadrantapiv1beta2.RouteSelector{
+				RouteSelectors: []kuadrantapiv1.RouteSelector{
 					{
 						Matches: []gatewayapiv1.HTTPRouteMatch{
 							{
@@ -104,11 +104,11 @@ var _ = Describe("Generate Ratelimitpolicy", func() {
 						},
 					},
 				},
-				Rates: []kuadrantapiv1beta2.Rate{
+				Rates: []kuadrantapiv1.Rate{
 					{
 						Limit:    3,
 						Duration: 10,
-						Unit:     kuadrantapiv1beta2.TimeUnit("second"),
+						Unit:     kuadrantapiv1.TimeUnit("second"),
 					},
 				},
 			}))
