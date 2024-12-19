@@ -25,13 +25,13 @@ var (
 func topologyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "topology",
-		Short: "Read kuadrant topology",
-		Long:  "Read kuadrant topology",
+		Short: "Export and visualize kuadrant topology",
+		Long:  "Export and visualize kuadrant topology",
 		RunE:  runTopology,
 	}
 
 	cmd.Flags().StringVarP(&topologyNS, "namespace", "n", "kuadrant-system", "Topology's namespace")
-	cmd.Flags().StringVarP(&topologyOutputFile, "output", "o", "(required)", "Output file")
+	cmd.Flags().StringVarP(&topologyOutputFile, "output", "o", "", "Output file")
 	err := cmd.MarkFlagRequired("output")
 	if err != nil {
 		panic(err)
