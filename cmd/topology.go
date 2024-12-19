@@ -115,7 +115,12 @@ func runTopology(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	openCmd := exec.Command("open", topologySVGOutputFile)
+	externalCommand := "xdg-open"
+	if _, err := exec.LookPath("open"); err == nil {
+		externalCommand = "open"
+	}
+
+	openCmd := exec.Command(externalCommand, topologySVGOutputFile)
 	// pipe the commands output to the applications
 	// standard output
 	openCmd.Stdout = os.Stdout
