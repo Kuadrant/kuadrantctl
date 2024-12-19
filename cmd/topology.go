@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/goccy/go-graphviz"
 	"github.com/spf13/cobra"
@@ -37,6 +40,9 @@ func topologyCommand() *cobra.Command {
 }
 
 func runTopology(cmd *cobra.Command, args []string) error {
+	if !strings.HasSuffix(topologyOutputFile, ".svg") {
+		return errors.New("output file must have .svg extension")
+	}
 	ctx := cmd.Context()
 	configuration, err := config.GetConfig()
 	if err != nil {
@@ -105,6 +111,17 @@ func runTopology(cmd *cobra.Command, args []string) error {
 	_, err = fSvg.Write(buf.Bytes())
 	logf.Log.V(1).Info("write topology in SVG format to file", "file", topologyOutputFile, "error", err)
 	if err != nil {
+		return err
+	}
+
+	openCmd := exec.Command("open", topologyOutputFile)
+	// pipe the commands output to the applications
+	// standard output
+	openCmd.Stdout = os.Stdout
+
+	// Run still runs the command and waits for completion
+	// but the output is instantly piped to Stdout
+	if err := openCmd.Run(); err != nil {
 		return err
 	}
 
