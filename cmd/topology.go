@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/goccy/go-graphviz"
 	"github.com/spf13/cobra"
@@ -15,20 +17,22 @@ import (
 )
 
 var (
-	topologyNS         string
-	topologyOutputFile string
+	topologyNS            string
+	topologySVGOutputFile string
+	topologyDOTOutputFile string
 )
 
 func topologyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "topology",
-		Short: "Read kuadrant topology",
-		Long:  "Read kuadrant topology",
+		Short: "Export and visualize kuadrant topology",
+		Long:  "Export and visualize kuadrant topology",
 		RunE:  runTopology,
 	}
 
 	cmd.Flags().StringVarP(&topologyNS, "namespace", "n", "kuadrant-system", "Topology's namespace")
-	cmd.Flags().StringVarP(&topologyOutputFile, "output", "o", "(required)", "Output file")
+	cmd.Flags().StringVarP(&topologySVGOutputFile, "output", "o", "", "SVG image output file")
+	cmd.Flags().StringVarP(&topologyDOTOutputFile, "dot", "d", "", "Graphviz DOT output file")
 	err := cmd.MarkFlagRequired("output")
 	if err != nil {
 		panic(err)
@@ -37,6 +41,9 @@ func topologyCommand() *cobra.Command {
 }
 
 func runTopology(cmd *cobra.Command, args []string) error {
+	if !strings.HasSuffix(topologySVGOutputFile, ".svg") {
+		return errors.New("output file must have .svg extension")
+	}
 	ctx := cmd.Context()
 	configuration, err := config.GetConfig()
 	if err != nil {
@@ -56,18 +63,18 @@ func runTopology(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	topologyOutputFileInDotFormat := fmt.Sprintf("%s.dot", topologyOutputFile)
+	if topologyDOTOutputFile != "" {
+		fDot, err := os.Create(topologyDOTOutputFile)
+		if err != nil {
+			return err
+		}
+		defer fDot.Close()
 
-	fDot, err := os.Create(topologyOutputFileInDotFormat)
-	if err != nil {
-		return err
-	}
-	defer fDot.Close()
-
-	_, err = fDot.WriteString(topologyConfigMap.Data["topology"])
-	logf.Log.V(1).Info("write topology in DOT format to file", "file", topologyOutputFileInDotFormat, "error", err)
-	if err != nil {
-		return err
+		_, err = fDot.WriteString(topologyConfigMap.Data["topology"])
+		logf.Log.V(1).Info("write topology in DOT format to file", "file", topologyDOTOutputFile, "error", err)
+		if err != nil {
+			return err
+		}
 	}
 
 	g, err := graphviz.New(ctx)
@@ -96,15 +103,31 @@ func runTopology(cmd *cobra.Command, args []string) error {
 	}
 
 	// write to file
-	fSvg, err := os.Create(topologyOutputFile)
+	fSvg, err := os.Create(topologySVGOutputFile)
 	if err != nil {
 		return err
 	}
 	defer fSvg.Close()
 
 	_, err = fSvg.Write(buf.Bytes())
-	logf.Log.V(1).Info("write topology in SVG format to file", "file", topologyOutputFile, "error", err)
+	logf.Log.V(1).Info("write topology in SVG format to file", "file", topologySVGOutputFile, "error", err)
 	if err != nil {
+		return err
+	}
+
+	externalCommand := "xdg-open"
+	if _, err := exec.LookPath("open"); err == nil {
+		externalCommand = "open"
+	}
+
+	openCmd := exec.Command(externalCommand, topologySVGOutputFile)
+	// pipe the commands output to the applications
+	// standard output
+	openCmd.Stdout = os.Stdout
+
+	// Run still runs the command and waits for completion
+	// but the output is instantly piped to Stdout
+	if err := openCmd.Run(); err != nil {
 		return err
 	}
 
