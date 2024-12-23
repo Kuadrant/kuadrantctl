@@ -16,6 +16,9 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
+	"os"
+
 	"github.com/spf13/cobra"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -32,6 +35,10 @@ func GetRootCmd(args []string) *cobra.Command {
 		Use:   "kuadrantctl",
 		Short: "Kuadrant configuration command line utility",
 		Long:  "Kuadrant configuration command line utility",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			logf.SetLogger(zap.New(zap.UseDevMode(verbose), zap.WriteTo(os.Stdout)))
+			cmd.SetContext(context.Background())
+		},
 	}
 
 	rootCmd.SetArgs(args)
@@ -42,9 +49,7 @@ func GetRootCmd(args []string) *cobra.Command {
 
 	rootCmd.AddCommand(versionCommand())
 	rootCmd.AddCommand(generateCommand())
-
-	loggerOpts := zap.Options{Development: verbose}
-	logf.SetLogger(zap.New(zap.UseFlagOptions(&loggerOpts)))
+	rootCmd.AddCommand(topologyCommand())
 
 	return rootCmd
 }

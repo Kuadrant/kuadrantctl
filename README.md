@@ -41,8 +41,9 @@ kuadrantctl [command] [subcommand] [flags]
 | ------------ | ---------------------------------------------------------- |
 | `completion` | Generate autocompletion scripts for the specified shell    |
 | `generate`   | Commands related to Kubernetes Gateway API and Kuadrant resource generation from OpenAPI 3.x specifications          |
+| `topology`   | Command related to Kuadrant topology                       |
 | `help`       | Help about any command                                     |
-| `version`    | Print the version number of `kuadrantctl`                    |
+| `version`    | Print the version number of `kuadrantctl`                  |
 
 ### Flags
 
@@ -80,6 +81,29 @@ Generate Gateway API resources from an OpenAPI 3.x specification
 | Subcommand | Description                                      | Flags                             |
 | ---------- | ------------------------------------------------ | --------------------------------- |
 | `httproute`| Generate Gateway API HTTPRoute from OpenAPI 3.0.X| `--oas string` Path to OpenAPI spec file (in JSON or YAML format), URL, or '-' to read from standard input (required). `-o` Output format: 'yaml' or 'json'. (default "yaml") |
+
+#### `topology`
+
+Export and visualize kuadrant topology
+
+### Usage
+
+```shell
+$ kuadrantctl topology -h
+Export and visualize kuadrant topology
+
+Usage:
+  kuadrantctl topology [flags]
+
+Flags:
+  -d, --dot string         Graphviz DOT output file
+  -h, --help               help for topology
+  -n, --namespace string   Topology's namespace (default "kuadrant-system")
+  -o, --output string      SVG image output file
+
+Global Flags:
+  -v, --verbose   verbose output
+```
 
 ##### `generate kuadrant`
 
