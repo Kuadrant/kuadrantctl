@@ -40,6 +40,7 @@ test: clean-cov fmt vet $(GINKGO) ## Run unit tests
 
 
 .PHONY : install
+install: VERSION ?= dev
 install: fmt vet ## Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 	@set -e; \
 	GIT_SHA=$$(git rev-parse --short=7 HEAD 2>/dev/null) || { \
@@ -53,7 +54,7 @@ install: fmt vet ## Build and install kuadrantctl binary ($GOBIN or GOPATH/bin)
 			GIT_HASH=$${GIT_SHA}; \
 		fi; \
 	fi; \
-	LDFLAGS="-X 'github.com/kuadrant/kuadrantctl/version.GitHash=$$GIT_HASH'"; \
+	LDFLAGS="-X 'github.com/kuadrant/kuadrantctl/cmd.gitSHA=$$GIT_HASH' -X 'github.com/kuadrant/kuadrantctl/cmd.version=$(VERSION)'"; \
 	GOBIN=$(PROJECT_PATH)/bin $(GO) install -ldflags "$$LDFLAGS";
 
 
