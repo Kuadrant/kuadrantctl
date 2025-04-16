@@ -3,7 +3,7 @@
 ## Technology stack required for development
 
 * [git][git_tool]
-* [go] version 1.21+
+* [go] version 1.23.6+
 
 ## Build the CLI
 ```

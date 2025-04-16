@@ -26,5 +26,5 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
-        goversion: 1.21.4
+        goversion: 1.23.6
         ldflags: -X "github.com/kuadrant/kuadrantctl/cmd.gitSHA=${{ github.sha }}" -X "github.com/kuadrant/kuadrantctl/cmd.version=${{ github.ref_name }}"
