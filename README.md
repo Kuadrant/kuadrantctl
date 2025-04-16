@@ -15,7 +15,7 @@
 
 ### Compiling from Source
 
-If you prefer to compile from source or are contributing to the project, you can install `kuadrantctl` using  `make install`. This method requires Golang 1.21 or newer.
+If you prefer to compile from source or are contributing to the project, you can install `kuadrantctl` using  `make install`. This method requires Golang 1.23.6 or newer.
 
 It is possible to use the make target `install` to compile from source. From root of the repository, run 
 
