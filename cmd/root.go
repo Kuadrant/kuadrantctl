@@ -18,6 +18,7 @@ package cmd
 import (
 	"context"
 	"os"
+	"os/exec"
 
 	"github.com/spf13/cobra"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -51,5 +52,14 @@ func GetRootCmd(args []string) *cobra.Command {
 	rootCmd.AddCommand(generateCommand())
 	rootCmd.AddCommand(topologyCommand())
 
+	if isBinaryAvailable("kubectl-dns") {
+		rootCmd.AddCommand(dnsCommand())
+	}
+
 	return rootCmd
+}
+
+func isBinaryAvailable(name string) bool {
+	path, err := exec.LookPath(name)
+	return path != "" && err == nil
 }
