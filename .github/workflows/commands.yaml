@@ -12,11 +12,9 @@ on:
     types: [checks_requested]
 
 jobs:
-  generate-httproute:
-    name: Run kuadrantctl generate gatewayapi httproute
+  build-and-test:
+    name: Build and test kuadrantctl commands
     runs-on: ubuntu-latest
-    env:
-      KIND_CLUSTER_NAME: kuadrantctl-local
     steps:
       - name: Set up Go 1.23.x
         uses: actions/setup-go@v4
@@ -28,9 +26,12 @@ jobs:
       - name: build
         run: |
           make install
-      - name: run command
+      - name: run help command
         run: |
-          bin/kuadrantctl generate gatewayapi httproute --oas examples/oas3/gateway-api-petstore.yaml
+          bin/kuadrantctl --help
+      - name: run version command
+        run: |
+          bin/kuadrantctl version
 
   required-checks:
     name: Command Testing Required Checks
@@ -38,7 +39,7 @@ jobs:
     # If a new check is added in this file, and it should be retested on entry to the merge queue,
     # it needs to be added to the list below aka needs: [ existing check 1, existing check 2, new check ].
     needs:
-    - generate-httproute
+    - build-and-test
     if: always()
     runs-on: ubuntu-latest
     steps:

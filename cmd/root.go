@@ -51,7 +51,7 @@ func newK8sClient() (client.Client, error) {
 		addFunc func(*runtime.Scheme) error
 		name    string
 	}{
-		{gatewayapiv1.AddToScheme, "Gateway API"},
+		{gatewayapiv1.Install, "Gateway API"},
 		{kuadrantv1.AddToScheme, "Kuadrant v1 API"},
 		{kuadrantv1alpha1.AddToScheme, "Kuadrant v1alpha1 API"},
 		{kuadrantv1beta1.AddToScheme, "Kuadrant v1beta1 API"},
@@ -91,7 +91,6 @@ func GetRootCmd(args []string) *cobra.Command {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	rootCmd.AddCommand(versionCommand())
-	rootCmd.AddCommand(generateCommand())
 	rootCmd.AddCommand(topologyCommand())
 	rootCmd.AddCommand(dumpCommand())
 	rootCmd.AddCommand(diagnoseCommand())

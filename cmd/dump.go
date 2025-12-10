@@ -15,6 +15,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	kuadrantv1 "github.com/kuadrant/kuadrant-operator/api/v1"
+	kuadrantv1alpha1 "github.com/kuadrant/kuadrant-operator/api/v1alpha1"
 	kuadrantv1beta1 "github.com/kuadrant/kuadrant-operator/api/v1beta1"
 )
 
@@ -99,6 +100,7 @@ func runDump(cmd *cobra.Command, _ []string) error {
 		{"httproutes", &gatewayapiv1.HTTPRouteList{}},
 		{"authpolicies", &kuadrantv1.AuthPolicyList{}},
 		{"ratelimitpolicies", &kuadrantv1.RateLimitPolicyList{}},
+		{"tokenratelimitpolicies", &kuadrantv1alpha1.TokenRateLimitPolicyList{}},
 		{"dnspolicies", &kuadrantv1.DNSPolicyList{}},
 		{"tlspolicies", &kuadrantv1.TLSPolicyList{}},
 		{"kuadrants", &kuadrantv1beta1.KuadrantList{}},

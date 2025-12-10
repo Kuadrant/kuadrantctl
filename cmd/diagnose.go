@@ -12,6 +12,7 @@ import (
 	gatewayapiv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	kuadrantv1 "github.com/kuadrant/kuadrant-operator/api/v1"
+	kuadrantv1alpha1 "github.com/kuadrant/kuadrant-operator/api/v1alpha1"
 	kuadrantv1beta1 "github.com/kuadrant/kuadrant-operator/api/v1beta1"
 )
 
@@ -22,14 +23,15 @@ var (
 )
 
 type DiagnosticReport struct {
-	GatewayIssues         []ResourceIssue
-	HTTPRouteIssues       []ResourceIssue
-	AuthPolicyIssues      []ResourceIssue
-	RateLimitPolicyIssues []ResourceIssue
-	DNSPolicyIssues       []ResourceIssue
-	TLSPolicyIssues       []ResourceIssue
-	KuadrantIssues        []ResourceIssue
-	Summary               DiagnosticSummary
+	GatewayIssues              []ResourceIssue
+	HTTPRouteIssues            []ResourceIssue
+	AuthPolicyIssues           []ResourceIssue
+	RateLimitPolicyIssues      []ResourceIssue
+	TokenRateLimitPolicyIssues []ResourceIssue
+	DNSPolicyIssues            []ResourceIssue
+	TLSPolicyIssues            []ResourceIssue
+	KuadrantIssues             []ResourceIssue
+	Summary                    DiagnosticSummary
 }
 
 type ResourceIssue struct {
@@ -41,20 +43,22 @@ type ResourceIssue struct {
 }
 
 type DiagnosticSummary struct {
-	TotalGateways               int
-	UnprogrammedGateways        int
-	TotalHTTPRoutes             int
-	UnacceptedHTTPRoutes        int
-	TotalAuthPolicies           int
-	UnenforcedAuthPolicies      int
-	TotalRateLimitPolicies      int
-	UnenforcedRateLimitPolicies int
-	TotalDNSPolicies            int
-	UnenforcedDNSPolicies       int
-	TotalTLSPolicies            int
-	UnenforcedTLSPolicies       int
-	TotalKuadrants              int
-	UnreadyKuadrants            int
+	TotalGateways                    int
+	UnprogrammedGateways             int
+	TotalHTTPRoutes                  int
+	UnacceptedHTTPRoutes             int
+	TotalAuthPolicies                int
+	UnenforcedAuthPolicies           int
+	TotalRateLimitPolicies           int
+	UnenforcedRateLimitPolicies      int
+	TotalTokenRateLimitPolicies      int
+	UnenforcedTokenRateLimitPolicies int
+	TotalDNSPolicies                 int
+	UnenforcedDNSPolicies            int
+	TotalTLSPolicies                 int
+	UnenforcedTLSPolicies            int
+	TotalKuadrants                   int
+	UnreadyKuadrants                 int
 }
 
 // checkPolicyConditions checks standard Accepted and Enforced conditions on a policy
@@ -122,6 +126,7 @@ func runDiagnose(cmd *cobra.Command, args []string) error {
 		{"HTTPRoutes", diagnoseHTTPRoutes},
 		{"AuthPolicies", diagnoseAuthPolicies},
 		{"RateLimitPolicies", diagnoseRateLimitPolicies},
+		{"TokenRateLimitPolicies", diagnoseTokenRateLimitPolicies},
 		{"DNSPolicies", diagnoseDNSPolicies},
 		{"TLSPolicies", diagnoseTLSPolicies},
 		{"Kuadrant CRs", diagnoseKuadrants},
@@ -370,6 +375,49 @@ func diagnoseRateLimitPolicies(ctx context.Context, k8sClient client.Client, rep
 	return nil
 }
 
+func diagnoseTokenRateLimitPolicies(ctx context.Context, k8sClient client.Client, report *DiagnosticReport, namespaceOption client.ListOption) error {
+	policyList := &kuadrantv1alpha1.TokenRateLimitPolicyList{}
+	if err := k8sClient.List(ctx, policyList, namespaceOption); err != nil {
+		return err
+	}
+
+	report.Summary.TotalTokenRateLimitPolicies = len(policyList.Items)
+
+	for _, policy := range policyList.Items {
+		// Check status conditions
+		conditionIssues, isEnforced := checkPolicyConditions(policy.Status.Conditions)
+		issues := conditionIssues
+
+		if !isEnforced {
+			report.Summary.UnenforcedTokenRateLimitPolicies++
+		}
+
+		// Check if target ref is set
+		if policy.Spec.TargetRef.Name == "" {
+			issues = append(issues, "No target reference configured")
+		}
+
+		if len(issues) > 0 {
+			var status string
+			if isEnforced {
+				status = "Enforced (with warnings)"
+			} else {
+				status = "Not Enforced"
+			}
+
+			report.TokenRateLimitPolicyIssues = append(report.TokenRateLimitPolicyIssues, ResourceIssue{
+				ResourceType: "TokenRateLimitPolicy",
+				Namespace:    policy.Namespace,
+				Name:         policy.Name,
+				Issues:       issues,
+				Status:       status,
+			})
+		}
+	}
+
+	return nil
+}
+
 func diagnoseDNSPolicies(ctx context.Context, k8sClient client.Client, report *DiagnosticReport, namespaceOption client.ListOption) error {
 	policyList := &kuadrantv1.DNSPolicyList{}
 	if err := k8sClient.List(ctx, policyList, namespaceOption); err != nil {
@@ -520,6 +568,7 @@ func printDiagnosticReport(report DiagnosticReport) {
 		{"HTTPRoutes", report.Summary.TotalHTTPRoutes, report.Summary.UnacceptedHTTPRoutes, "unaccepted"},
 		{"AuthPolicies", report.Summary.TotalAuthPolicies, report.Summary.UnenforcedAuthPolicies, "unenforced"},
 		{"RateLimitPolicies", report.Summary.TotalRateLimitPolicies, report.Summary.UnenforcedRateLimitPolicies, "unenforced"},
+		{"TokenRateLimitPolicies", report.Summary.TotalTokenRateLimitPolicies, report.Summary.UnenforcedTokenRateLimitPolicies, "unenforced"},
 		{"DNSPolicies", report.Summary.TotalDNSPolicies, report.Summary.UnenforcedDNSPolicies, "unenforced"},
 		{"TLSPolicies", report.Summary.TotalTLSPolicies, report.Summary.UnenforcedTLSPolicies, "unenforced"},
 		{"Kuadrants", report.Summary.TotalKuadrants, report.Summary.UnreadyKuadrants, "unready"},
@@ -532,8 +581,8 @@ func printDiagnosticReport(report DiagnosticReport) {
 	// Count total issues
 	totalIssues := len(report.GatewayIssues) + len(report.HTTPRouteIssues) +
 		len(report.AuthPolicyIssues) + len(report.RateLimitPolicyIssues) +
-		len(report.DNSPolicyIssues) + len(report.TLSPolicyIssues) +
-		len(report.KuadrantIssues)
+		len(report.TokenRateLimitPolicyIssues) + len(report.DNSPolicyIssues) +
+		len(report.TLSPolicyIssues) + len(report.KuadrantIssues)
 
 	if totalIssues == 0 {
 		fmt.Println("\n" + strings.Repeat("=", 80))
@@ -553,6 +602,7 @@ func printDiagnosticReport(report DiagnosticReport) {
 		{"HTTPROUTE ISSUES:", report.HTTPRouteIssues},
 		{"AUTHPOLICY ISSUES:", report.AuthPolicyIssues},
 		{"RATELIMITPOLICY ISSUES:", report.RateLimitPolicyIssues},
+		{"TOKENRATELIMITPOLICY ISSUES:", report.TokenRateLimitPolicyIssues},
 		{"DNSPOLICY ISSUES:", report.DNSPolicyIssues},
 		{"TLSPOLICY ISSUES:", report.TLSPolicyIssues},
 		{"KUADRANT ISSUES:", report.KuadrantIssues},
