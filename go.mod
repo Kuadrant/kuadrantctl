@@ -5,7 +5,7 @@ go 1.23.6
 require (
 	github.com/getkin/kin-openapi v0.120.0
 	github.com/ghodss/yaml v1.0.0
-	github.com/goccy/go-graphviz v0.2.9
+	github.com/goccy/go-graphviz v0.2.10
 	github.com/kuadrant/authorino v0.15.0
 	github.com/kuadrant/kuadrant-operator v0.7.1
 	github.com/onsi/ginkgo/v2 v2.13.2
@@ -66,7 +66,7 @@ require (
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/tetratelabs/wazero v1.8.1 // indirect
+	github.com/tetratelabs/wazero v1.10.1 // indirect
 	github.com/tidwall/gjson v1.14.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
