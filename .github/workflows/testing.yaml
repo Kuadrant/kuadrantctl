@@ -17,12 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.23.x
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@7b8cf10d4e4a01d4992d18a89f4d7dc5a3e6d6f4 # v4.3.0
         with:
           go-version: 1.23.x
         id: go
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: make install
         run: |
           make install
@@ -34,12 +34,12 @@ jobs:
       KIND_CLUSTER_NAME: kuadrantctl-local
     steps:
       - name: Set up Go 1.23.x
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@7b8cf10d4e4a01d4992d18a89f4d7dc5a3e6d6f4 # v4.3.0
         with:
           go-version: 1.23.x
         id: go
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run tests
         run: |
           make test
@@ -48,7 +48,7 @@ jobs:
         # Only run if the feature branch is in your repo (not in a fork)
         # as Tokenless uploading is rate limited for public repos
         if: github.event.pull_request.head.repo.full_name == github.repository
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
@@ -65,5 +65,4 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
     - run: echo '${{ toJSON(needs) }}' | jq -e 'all(.[]; .result == "success" or .result == "skipped")'
