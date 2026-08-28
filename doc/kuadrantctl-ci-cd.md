@@ -80,6 +80,7 @@ spec:
         x86_64) BIN_ARCH="amd64";;
         arm64) BIN_ARCH="arm64";;
         aarch64) BIN_ARCH="arm64";;
+        ppc64le) BIN_ARCH="ppc64le";;
         *) echo "Unsupported architecture: $ARCH" && exit 1 ;;
         esac
         cd $(workspaces.source.path)
