@@ -25,6 +25,10 @@ OpenAPI [Security Scheme Object](https://spec.openapis.org/oas/latest.html#secur
 The following OAS example has one protected endpoint `GET /dog` with `openIdConnect` security scheme type.
 
 ```yaml
+openapi: "3.1.0"
+info:
+  title: "Pet Store API"
+  version: "1.0.0"
 paths:
   /dog:
     get:
@@ -38,24 +42,20 @@ components:
   securitySchemes:
     securedDog:
       type: openIdConnect
-      openIdConnectUrl: https://example.com/.well-known/openid-configuration
+      openIdConnectUrl: https://sso.example.com/auth/realms/petstore
 ```
 
-Running the command
+Take this example and save it as `example.yaml` and then run the command:
 
-```
-kuadrantctl generate kuadrant authpolicy --oas ./petstore-openapi.yaml  | yq -P
+```bash
+kuadrantctl generate kuadrant authpolicy --oas example.yaml
 ```
 
-The generated authpolicy (only relevan fields shown here):
+The generated authpolicy (only relevant fields shown here):
 
 ```yaml
 kind: AuthPolicy
 apiVersion: kuadrant.io/v1beta2
-metadata:
-  name: petstore
-  namespace: petstore
-  creationTimestamp: null
 spec:
   routeSelectors:
     - matches:
@@ -68,7 +68,7 @@ spec:
       getDog_securedDog:
         credentials: {}
         jwt:
-          issuerUrl: https://example.com/.well-known/openid-configuration
+          issuerUrl: https://sso.example.com/auth/realms/petstore
         routeSelectors:
           - matches:
               - path:
@@ -82,6 +82,10 @@ spec:
 The following OAS example has one protected endpoint `GET /dog` with `apiKey` security scheme type.
 
 ```yaml
+openapi: "3.1.0"
+info:
+  title: "Pet Store API"
+  version: "1.0.0"
 paths:
   /dog:
     get:
@@ -99,21 +103,17 @@ components:
       in: query
 ```
 
-Running the command
+Take this example and save it as `example.yaml` and then run the command:
 
-```
-kuadrantctl generate kuadrant authpolicy --oas ./petstore-openapi.yaml  | yq -P
+```bash
+kuadrantctl generate kuadrant authpolicy --oas example.yaml
 ```
 
-The generated authpolicy (only relevan fields shown here):
+The generated authpolicy (only relevant fields shown here):
 
 ```yaml
 kind: AuthPolicy
 apiVersion: kuadrant.io/v1beta2
-metadata:
-  name: petstore
-  namespace: petstore
-  creationTimestamp: null
 spec:
   routeSelectors:
     - matches:
@@ -232,6 +232,9 @@ kubectl apply -n petstore -f examples/petstore/petstore.yaml
 
 <details>
 
+> Replace `${KEYCLOAK_ISSUER}` with your SSO instance issuer endpoint for your `petstore` realm. 
+> Otherwise remove the oidc from `components.securitySchemas` and `/dog`, `/snake` paths
+
 ```yaml
 cat <<EOF >petstore-openapi.yaml
 ---
@@ -305,7 +308,7 @@ components:
       in: header
     oidc:
       type: openIdConnect
-      openIdConnectUrl: https://${KEYCLOAK_PUBLIC_DOMAIN}/auth/realms/petstore
+      openIdConnectUrl: ${KEYCLOAK_ISSUER}
     snakes_api_key:
       type: apiKey
       name: snake_token
@@ -315,9 +318,36 @@ EOF
 
 </details>
 
-> Replace `${KEYCLOAK_PUBLIC_DOMAIN}` with your SSO instance domain
+* Create `istio-ingressgateway` Gateway object
+
+```yaml
+kubectl apply -f -<<EOF
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: istio-ingressgateway
+  namespace: istio-system
+spec:
+  gatewayClassName: istio
+  listeners:
+    - allowedRoutes:
+        namespaces:
+          from: All
+      hostname: 'example.com'
+      name: api
+      port: 80
+      protocol: HTTP
+EOF
+```
+* Get the IP of the Gateway:
+
+```bash
+export INGRESS_IP=$(kubectl get -n istio-system Service/istio-ingressgateway-istio -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
+```
+
 
 * Create an API key only valid for `POST /api/v1/cat` endpoint
+
 ```yaml
 kubectl apply -f -<<EOF
 apiVersion: v1
@@ -333,6 +363,7 @@ stringData:
 type: Opaque
 EOF
 ```
+
 > **Note**: the label's value of `kuadrant.io/apikeys-by: cat_api_key` is the name of the sec scheme of the OpenAPI spec.
 
 * Create an API key only valid for `GET /api/v1/snake` endpoint
@@ -372,7 +403,7 @@ Now, we are ready to test OpenAPI endpoints :exclamation:
 - `GET /api/v1/cat` -> It's a public endpoint, hence should return 200 Ok
 
 ```bash
-curl  -H "Host: example.com" -i "http://127.0.0.1:9080/api/v1/cat"
+curl  -H "Host: example.com" -i "http://${INGRESS_IP}/api/v1/cat"
 ```
 
 - `POST /api/v1/cat` -> It's a protected endpoint with apikey
@@ -380,7 +411,7 @@ curl  -H "Host: example.com" -i "http://127.0.0.1:9080/api/v1/cat"
 Without any credentials, it should return `401 Unauthorized`
 
 ```bash
-curl  -H "Host: example.com" -X POST -i "http://127.0.0.1:9080/api/v1/cat"
+curl  -H "Host: example.com" -X POST -i "http://${INGRESS_IP}/api/v1/cat"
 ```
 
 ```
@@ -403,7 +434,7 @@ What if we try a wrong token? one token assigned to other endpoint,
 i.e. `I_LIKE_SNAKES` instead of the valid one `I_LIKE_CATS`. It should return `401 Unauthorized`.
 
 ```bash
-curl  -H "Host: example.com" -H "api_key: I_LIKE_SNAKES" -X POST -i "http://127.0.0.1:9080/api/v1/cat"
+curl  -H "Host: example.com" -H "api_key: I_LIKE_SNAKES" -X POST -i "http://${INGRESS_IP}/api/v1/cat"
 ```
 
 ```
@@ -422,8 +453,8 @@ The *reason* headers tell that `the API Key provided is invalid`.
 Using valid token (from the secret `cat-api-key-1` assigned to `POST /api/v1/cats`)
 in the `api_key` header should return 200 Ok
 
-```
-curl  -H "Host: example.com" -H "api_key: I_LIKE_CATS" -X POST -i "http://127.0.0.1:9080/api/v1/cat"
+```bash
+curl  -H "Host: example.com" -H "api_key: I_LIKE_CATS" -X POST -i "http://${INGRESS_IP}/api/v1/cat"
 ```
 
 - `GET /api/v1/dog` -> It's a protected endpoint with oidc (assigned to our keycloak instance and `petstore` realm)
@@ -431,31 +462,35 @@ curl  -H "Host: example.com" -H "api_key: I_LIKE_CATS" -X POST -i "http://127.0.
 without credentials, it should return `401 Unauthorized`
 
 ```bash
-curl -H "Host: example.com" -i "http://127.0.0.1:9080/api/v1/dog"
+curl -H "Host: example.com" -i "http://${INGRESS_IP}/api/v1/dog"
 ```
 
+#### [Optional] SSO example
+
 To get the authentication token, this example is using Direct Access Grants oauth2 grant type
-(also known as Client Credentials grant type). When configuring the Keycloak (OIDC provider) client
+(also known as Resource Owner Password Credentials Grant grant type). When configuring the Keycloak (OIDC provider) client
 settings, we enabled Direct Access Grants to enable this procedure.
 We will be authenticating as `bob` user with `p` password.
 We previously created `bob` user in Keycloak in the `petstore` realm.
+We will use Command-line JSON processor `jq` to extract the access token into `ACCESS_TOKEN` variable:
 
-```
+
+> Replace `${KEYCLOAK_TOKEN_ENDPOINT}` with your SSO instance token endpoint for your `petstore` realm.
+
+```bash
 export ACCESS_TOKEN=$(curl -k -H "Content-Type: application/x-www-form-urlencoded" \
         -d 'grant_type=password' \
         -d 'client_id=petstore' \
         -d 'scope=openid' \
         -d 'username=bob' \
-        -d 'password=p' "https://${KEYCLOAK_PUBLIC_DOMAIN}/auth/realms/petstore/protocol/openid-connect/token" | jq -r '.access_token')
+        -d 'password=p' \
+        "${KEYCLOAK_TOKEN_ENDPOINT}" | jq -r '.access_token')
 ```
-
-> Replace `${KEYCLOAK_PUBLIC_DOMAIN}` with your SSO instance domain
-
 
 With the access token in place, let's try to get those puppies
 
 ```bash
-curl -H "Authorization: Bearer $ACCESS_TOKEN" -H 'Host: example.com' http://127.0.0.1:9080/api/v1/dog -i
+curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H 'Host: example.com' "http://${INGRESS_IP}/api/v1/dog" -i
 ```
 
 it should return 200 OK
@@ -468,13 +503,13 @@ for an OpenAPI operation.
 Without credentials, it should return `401 Unauthorized`
 
 ```bash
-curl -H "Host: example.com" -i "http://127.0.0.1:9080/api/v1/snake"
+curl -H "Host: example.com" -i "http://${INGRESS_IP}/api/v1/snake"
 ```
 
 With the access token in place, it should return 200 OK (unless the token has expired).
 
 ```bash
-curl -H "Authorization: Bearer $ACCESS_TOKEN" -H 'Host: example.com' http://127.0.0.1:9080/api/v1/snake -i
+curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H 'Host: example.com' "http://${INGRESS_IP}/api/v1/snake" -i
 ```
 
 With apiKey it should also work. According to the OpenAPI spec security scheme,
@@ -482,6 +517,6 @@ it should be a query string named `snake_token` and the token needs to be valid 
 (from the secret `snake-api-key-1` assigned to `GET /api/v1/snake`)
 
 ```bash
-curl -H 'Host: example.com' -i "http://127.0.0.1:9080/api/v1/snake?snake_token=I_LIKE_SNAKES"
+curl -H 'Host: example.com' -i "http://${INGRESS_IP}/api/v1/snake?snake_token=I_LIKE_SNAKES"
 ```
 
